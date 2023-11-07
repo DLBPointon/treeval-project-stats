@@ -7,6 +7,8 @@ The scripts contained in this repo `src/` aim to pull actionable data from these
 Requirements:
 Python >= 3.10
 pandas
+plotly
+statsmodels
 
 
 Run the script with:
