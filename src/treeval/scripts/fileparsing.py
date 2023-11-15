@@ -22,10 +22,9 @@ class ProjectStats:
         self.pacbio_gb      = round(self.header_block.pacbio_totaldata / 1000000000, 2)
         self.cram_avg       = round(self.cram_gb / self.header_block.cram_count, 2)
         self.pacbio_avg     = round(self.pacbio_gb / self.header_block.pacbio_count, 2)
-        
-        self.main_block     = "IM THE EXECUTION PARSER THAT DOESN'T EXIST YET"
+        self.execution      = Execution(self.contents[16:-1])
 
-        self.collection         = Header.__iter__(self)
+        self.collection     = ProjectStats.__iter__(self)
 
     def __iter__(self):
         for attr, value in self.__dict__.items():

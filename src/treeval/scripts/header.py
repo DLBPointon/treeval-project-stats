@@ -49,7 +49,6 @@ class Header:
         return txt.getvalue()
 
 
-    @staticmethod
     def get_name(self) -> str:
         name = self.block[8].strip().split("      ")[1]
 
@@ -59,7 +58,6 @@ class Header:
         return name
 
 
-    @staticmethod
     def fix_time(time_list: list) -> dict:
         total = 0
         time_dict = {}
@@ -71,12 +69,14 @@ class Header:
                     total += int(i.split('d')[0]) * 86400        # number of days * seconds in day
                 elif i.endswith('h'):
                     total += (int(i.split('h')[0]) * 60) * 60    # number of hours * minutes in hour * seconds in minute
+                elif i.endswith('ms'):
+                    total += int(float(i.split('ms')[0])) * 1000 # number of miliseconds in seconds
                 elif i.endswith('m'):
                     total += int(i.split('m')[0]) * 60           # number of minutes * seconds in minute
                 elif i.endswith('s'):
-                    total += int(i.split('s')[0])                # nothing.. it's already in seconds
+                    total += int(float(i.split('s')[0]))         # nothing.. it's already in seconds
                 else:
-                    total = int(i)                               # nothing.. means its the newer formats which are already converted
+                    total = int(float(i))                        # nothing.. means its the newer formats which are already converted
             time_dict['s'] = total
             time_dict['m'] = round(total / 60, 2)
             time_dict['h'] = round(( total / 60 ) / 60, 2)

@@ -6,9 +6,12 @@ import plotly
 import pandas as pd
 from itertools import count
 from sys import stdout
+import numpy as np
+#import matplotlib.pyplot as plt
 
 # TreeVal imports
 from fileparsing import ProjectStats
+from master_list import master_list
 
 DOCSTRING = f"""
 {'-'*60}
@@ -51,6 +54,8 @@ def get_command_args(args=None):
     parser.add_argument("-o", "--output", action="store", help="Output directory location", default="./", type=str)
 
     parser.add_argument("-v", "--version", action="version", version="v1.0.0")
+    
+    parser.add_argument("--verbose", action="store", type=bool, default=False, help="Verbosity, do you want more information on the run?")
 
     options = parser.parse_args(args)
     return options
@@ -232,11 +237,10 @@ def print_report(data_df: pd.DataFrame, empties: list):
     stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
     if len(empties) >= 1:
         [stdout.write(f"Empty Files!:\n{i}\n") for i in empties]
-        empty = next(f"Empty Files!:\n{i}<br>" for i in empties)
         stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
 
     breaker = f"{'-'*50}<br>"
-    output_list = breaker + "TreeVal Project Summary Stats! <br>" + breaker + f"Total data points: {len(data_df)}<br>" + breaker + f"Unique CLADE count:\n{data_df['Clade'].value_counts()}<br>" + breaker + f"Run Type Count:\n{data_df['Entry_Point'].value_counts()}<br>" + breaker + f"Ticket Type Count:\n{data_df['Ticket'].value_counts()}<br>" + breaker + empty + breaker
+    output_list = breaker + "TreeVal Project Summary Stats! <br>" + breaker + f"Total data points: {len(data_df)}<br>" + breaker + f"Unique CLADE count:\n{data_df['Clade'].value_counts()}<br>" + breaker + f"Run Type Count:\n{data_df['Entry_Point'].value_counts()}<br>" + breaker + f"Ticket Type Count:\n{data_df['Ticket'].value_counts()}<br>" + breaker
     return output_list
 
 
@@ -251,29 +255,61 @@ def main():
             empty_files.append(file)
             pass
         else:
-            data = ProjectStats(options.DIR + file)
-            list_of_lists.append(  [data.uniquename, data.header_block.entrypnt,
+            usable_data = options.DIR + file
+            #usable_data = '/nfs/treeoflife-01/teams/tola/users/dp24/SummaryStats/treeval-summary-files/1-1-0/TreeVal_run_[bAnaAcu1_1]_RAPID_2023-08-20_20-40-33.txt'
+            data = ProjectStats(usable_data)
+            # print(data.execution.list_of_list) | Execution log data
+            # print(data.execution.headers) | Execution log headers
+            data_list = [data.uniquename, data.header_block.entrypnt,
                                     data.header_block.version,data.header_block.duration.get('h'),
                                     data.header_block.genome_clade,data.id,
                                     data.fasta_mb,data.header_block.genome_ticket,
                                     data.pacbio_avg,data.cram_avg,
                                     data.header_block.pacbio_totaldata, data.header_block.cram_totaldata]
-                                )
-
-    header_df = pd.DataFrame(
-                            list_of_lists,
-                            columns = [ 'Unique_name', 'Entry_Point',
+            data_and_execution = data_list + data.execution.list_of_list
+            
+            df_columns = [ 'Unique_name', 'Entry_Point',
                                         'Pipeline_Version', 'Duration_(Hrs)',
                                         'Clade', 'Prefix',
                                         'Fasta_(mb)', 'Ticket',
                                         'Longread_(AVG_GB)', 'HiC_(AVG_GB)',
                                         'Longread_(TOTAL_GB)', 'HiC_(TOTAL_GB)' ]
-                            )
+            
+            df_columns += data.execution.headers
+            
+            list_of_lists.append(  
+                                    data_and_execution
+                                )
+            
 
+    header_df = pd.DataFrame(
+                            list_of_lists,
+                            columns = df_columns
+                            )
+    
     subset_df = subset_dataframe(header_df, ticket = [])
 
     total_rows = str(subset_df.shape[0])
     total_cols = str(subset_df.shape[1])
+    pd.set_option('display.max_columns', 1000)
+    print(subset_df.shape)
+    print(subset_df.iloc[0])
+    
+    #
+    # THE PROCESS DATA IS IN LIST FORMAT ORGANISED AS: [ avg_cpu, avg_mem, avg_realtime, avg_pcpu, avg_pmem, avg_peak ]
+    # FOR GRAPHING THIS NEEDS SPLITTING OUT INTO COLUMNS
+    #
+    for i in master_list:
+        subset_df[[f'{i}-AVERAGE_CPU', f'{i}-AVERAGE_MEMORY', f'{i}-AVERAGE_REALTIME', f'{i}-AVERAGE_P_CPU', f'{i}-AVERAGE_P_MEM', f'{i}-AVERAGE_PEAK_MEMORY']] = pd.DataFrame(subset_df[f'{i}'].to_list(), index = subset_df.index)
+
+    subset_df.replace('NA',np.NaN)
+    subset_df=pd.to_numeric(subset_df[['Unique_name','HIC_MAPPING:CRAM_FILTER_ALIGN_BWAMEM2_FIXMATE_SORT-AVERAGE_CPU', 'HIC_MAPPING:PRETEXTMAP_STANDRD-AVERAGE_CPU']], errors='coerce')
+
+    #subset_df[subset_df['Name', 'HIC_MAPPING:CRAM_FILTER_ALIGN_BWAMEM2_FIXMATE_SORT']]
+    subset_df.boxplot(column=['Unique_name','HIC_MAPPING:CRAM_FILTER_ALIGN_BWAMEM2_FIXMATE_SORT-AVERAGE_CPU', 'HIC_MAPPING:PRETEXTMAP_STANDRD-AVERAGE_CPU'],
+                        by=['Unique_name','HIC_MAPPING:CRAM_FILTER_ALIGN_BWAMEM2_FIXMATE_SORT-AVERAGE_CPU', 'HIC_MAPPING:PRETEXTMAP_STANDRD-AVERAGE_CPU'])
+
+    #print(ProjectStats(usable_data))
 
     a1, a2, a3 = generate_genome_vs_runtime(subset_df)
 
