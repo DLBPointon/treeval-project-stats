@@ -281,7 +281,7 @@ def plot_average_cpu_of_super_module(data_df: pd.DataFrame):
 def generate_new_column_names(column_names):
     return ["CRAM_SUPER_MODULE" if i.split(':')[1].startswith('CRAM') else 'Unique_name' if i == 'Unique_name' else i.split(':')[1].split('-')[0] for i in column_names]
 
-def plot_hic_boxplots(name: str, entry: str, data_df: pd.DataFrame, list_of_processes: list, debug: bool):
+def plot_mem_boxplots(name: str, entry: str, data_df: pd.DataFrame, list_of_processes: list, verbose: bool, outdir: str):
 
     if entry == 'ALL':
         pass
@@ -302,7 +302,8 @@ def plot_hic_boxplots(name: str, entry: str, data_df: pd.DataFrame, list_of_proc
     data_df_P_peak = data_df_P_peak.iloc[:, :] # Drops the unique name column otherwise plots per name and breaks max()
     max_values = data_df_P_peak.max()           # Get the max value per process 
     peak = pd.DataFrame(max_values)             # Make dataframe max()
-    if debug:
+    if verbose:
+        print(f"---\n\n>>> {name}_{entry}")
         print(peak)                                 # For Debugging
 
     # Actually generates the graph
@@ -319,31 +320,36 @@ def plot_hic_boxplots(name: str, entry: str, data_df: pd.DataFrame, list_of_proc
     
     box = fig.get_figure()
 
-    box.savefig(f"{name}_{entry}.png")
+    box.savefig(f"{outdir}mem_for_{name}_{entry}.png")
     plt.clf()                                   # Clear plot
 
 
-def print_report(data_df: pd.DataFrame, empties: list):
-    empty = ''
-    stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
-    stdout.write(f"{Colours.BLUE}TreeVal{Colours.END}{Colours.RED}Project{Colours.END}.{Colours.GREEN}Summary{Colours.END} {Colours.YELLOW}Stats{Colours.END}!\n")
-    stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
-    stdout.write(f"Total data points: {len(data_df)} \n")
-    stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
-    stdout.write(f"Unique CLADE count:\n{data_df['Clade'].value_counts()}\n")
-    stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
-    stdout.write(f"Run Type Count:\n{data_df['Entry_Point'].value_counts()}\n")
-    stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
-    stdout.write(f"Ticket Type Count:\n{data_df['Ticket'].value_counts()}\n")
-    stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
-    if len(empties) >= 1:
-        [stdout.write(f"Empty Files!:\n{i}\n") for i in empties]
+def print_report(data_df: pd.DataFrame, empties: list, verbose: bool, outdir: str):
+    if verbose:
         stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
+        stdout.write(f"{Colours.BLUE}TreeVal{Colours.END}{Colours.RED}Project{Colours.END}.{Colours.GREEN}Summary{Colours.END} {Colours.YELLOW}Stats{Colours.END}!\n")
+        stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
+        stdout.write(f"Total data points: {len(data_df)} \n")
+        stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
+        stdout.write(f"Unique CLADE count:\n{data_df['Clade'].value_counts()}\n")
+        stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
+        stdout.write(f"Run Type Count:\n{data_df['Entry_Point'].value_counts()}\n")
+        stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
+        stdout.write(f"Ticket Type Count:\n{data_df['Ticket'].value_counts()}\n")
+        stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
+        if len(empties) >= 1:
+            [stdout.write(f"Empty Files!:\n{i}\n") for i in empties]
+            stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
 
-    breaker = f"{'-'*50}<br>"
-    output_list = breaker + "TreeVal Project Summary Stats! <br>" + breaker + f"Total data points: {len(data_df)}<br>" + breaker + f"Unique CLADE count:\n{data_df['Clade'].value_counts()}<br>" + breaker + f"Run Type Count:\n{data_df['Entry_Point'].value_counts()}<br>" + breaker + f"Ticket Type Count:\n{data_df['Ticket'].value_counts()}<br>" + breaker
-    return output_list
-
+    if not verbose:
+        breaker = f"{'-'*50}\n"
+        output_list = breaker + "TreeVal Project Summary Stats! \n" + breaker + f"Total data points: {len(data_df)}\n" + breaker + f"Unique CLADE count:\n{data_df['Clade'].value_counts()}\n" + breaker + f"Run Type Count:\n{data_df['Entry_Point'].value_counts()}\n" + breaker + f"Ticket Type Count:\n{data_df['Ticket'].value_counts()}\n" + breaker
+        with open(f"{outdir}StatsSummary.txt", 'w') as file:
+            file.write(output_list)
+        
+        stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
+        stdout.write(f"{Colours.BLUE}TreeVal{Colours.END}{Colours.RED}Project{Colours.END}.{Colours.GREEN}Summary{Colours.END} {Colours.YELLOW}Stats{Colours.END}!\n ALL DONE!!\n\n\n")
+        stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
 
 def main():
     options = get_command_args()
@@ -351,6 +357,9 @@ def main():
         outdir = options.output +'/'
     else:
         outdir = options.output
+
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
 
     list_of_lists = []
     empty_files = []
@@ -402,8 +411,9 @@ def main():
         subset_df.replace('NA', np.nan, inplace=True)
         subset_df[[f'{i}-AVERAGE_CPU', f'{i}-AVERAGE_MEMORY', f'{i}-AVERAGE_REALTIME', f'{i}-AVERAGE_P_CPU', f'{i}-AVERAGE_P_MEM', f'{i}-AVERAGE_PEAK_MEMORY']].astype(float)
 
-    subset_df.replace('NA', None)
+    subset_df.replace('NA', None) # str 'NA' as you'd expect, causes issues when comparing against int/float
 
+    # TODO: Need generalising much like boxplots
     plot_average_mem_of_super_module(subset_df)
 
     plot_average_cpu_of_super_module(subset_df)
@@ -415,7 +425,7 @@ def main():
         if subworkflow_name not in ['GENE_ALIGNMENT', 'CUSTOM_DUMPSOFTWAREVERSIONS']:
             subworkflow_processes = [i + "" for i in master_list if i.startswith(subworkflow_name)]
             for x in ['FULL', 'RAPID', 'ALL']:
-                plot_hic_boxplots(
+                plot_mem_boxplots(
                     name = subworkflow_name,
                     entry = x,
                     data_df = subset_df,
@@ -438,112 +448,12 @@ def main():
 
         f1, f2, f3 = generate_3d_graphs(subset_df)
     """
-    cli = print_report(header_df, empty_files)
-
-    """ html_string = '''
-    <html>
-        <head>
-            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
-            <style>
-                body{
-                    margin:0 100;
-                    background:whitesmoke;
-                }
-                .boxy{
-                    float: left;
-                    width: 50%;
-                    padding: 50px;
-                }
-                .row{
-                    width: 100%;
-                }
-                p {text-align: center;}
-            </style>
-            <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
-        </head>
-        <h1>TreeVal Summary Stats Report</h1>
-        <div class="row">
-            <div class="boxy">
-                <div>
-                    <div class="text-uppercase text-primary font-weight-bold text-xs mb-1"><span>Rows of Data</span></div>
-                    
-                    <div class="text-dark font-weight-bold h5 mb-0"><span> ''' + total_rows + '''</span></div>
-                </div>
-            </div>
-            <div class="boxy">
-                <div class="col mr-2">
-                    <div class="text-uppercase text-success font-weight-bold text-xs mb-1"><span>Columns of Data</span></div>
-
-                    <div class="text-dark font-weight-bold h5 mb-0"><span>''' + total_cols + '''</span></div>
-                </div>
-            </div>
-        </div>
-        <div>
-            <h2> General Stats</h2>
-            <p>
-                ''' + cli + '''
-            <p>
-        </div>
-        <div>
-            <h2> Genome Size vs. Runtime </h2>
-            <!-- *** Section 1 *** --->
-                ''' + a1 + '''
-                <!-- *** Section 2 *** --->
-                ''' + a2 + '''
-                <!-- *** Section 3 *** --->
-                ''' + a3 + '''
-        </div>
-        <div>
-            <h2> Clade vs. Runtime </h2>
-            <!-- *** Section 1 *** --->
-                ''' + b1 + '''
-                <!-- *** Section 2 *** --->
-                ''' + b2 + '''
-                <!-- *** Section 3 *** --->
-                ''' + b3 + '''
-        </div>
-        <div>
-            <h2> Family vs. Runtime </h2>
-            <!-- *** Section 1 *** --->
-                ''' + c1 + '''
-                <!-- *** Section 2 *** --->
-                ''' + c2 + '''
-                <!-- *** Section 3 *** --->
-                ''' + c3 + '''
-        </div>
-        <div>
-            <h2> Longread vs. Runtime </h2>
-            <!-- *** Section 1 *** --->
-                ''' + d1 + '''
-                <!-- *** Section 2 *** --->
-                ''' + d2 + '''
-                <!-- *** Section 3 *** --->
-                ''' + d3 + '''
-        </div>
-        <div>
-            <h2> HiC vs. Runtime </h2>
-            <!-- *** Section 1 *** --->
-                ''' + e1 + '''
-                <!-- *** Section 2 *** --->
-                ''' + e2 + '''
-                <!-- *** Section 3 *** --->
-                ''' + e3 + '''
-        </div>
-        <div>
-            <h2> 3D Graphs </h2>
-            <!-- *** Section 1 *** --->
-                ''' + f1 + '''
-                <!-- *** Section 2 *** --->
-                ''' + f2 + '''
-                <!-- *** Section 3 *** --->
-                ''' + f3 + '''
-        </div>
-        </body>
-    </html>
-    '''
-
-    with open(options.output + 'TreeValSummary.html', 'w') as html_report:
-        html_report.write(html_string) """
+    print_report(
+        data_df = header_df,
+        empties = empty_files,
+        verbose = options.verbose,
+        outdir  = outdir
+    )
 
 if __name__ == "__main__":
     main()
