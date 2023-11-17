@@ -74,13 +74,16 @@ class Execution():
 
 
     def get_unique_processes(data: list) -> list:
-        processes_list = [i.split(' ')[0] for i in data]
-        unique_processes = set(processes_list)
-        set_list = list(unique_processes)
-        return set_list
+        """
+        Return unique list of processes in execution log
+        """
+        return list(set([i.split(' ')[0] for i in data]))
 
 
     def collect_per_process(data: list, processes: list) -> dict:
+        """
+        Collect completed processes per process, filtering out the incomplete or errored cases
+        """
         collection = dict()
         counter = 0
         for i in processes:
@@ -96,15 +99,19 @@ class Execution():
 
 
     def condense_data(data: dict):
+        """
+        Condense data from the execution log into an easier averaged format
+        So ten lines of data recorded by x process becomes one line of average(data) by x process
+        """
         condensed_data = {}
         for process, data_lists in data.items():
             process_entry = str(process.split(':')[0])
             if process_entry in ['RAPID', 'FULL']:
-                process = ':'.join(process.split(':')[3:]) # Gets subworkflows + process inside subworkflows 
-            elif 'SANGERTOL_TREEVAL' in process_entry: # FULL entry point
-                process = ':'.join(process.split(':')[2:]) # Gets subworkflows + process
+                process = ':'.join(process.split(':')[3:])  # Gets subworkflows + process inside subworkflows 
+            elif 'SANGERTOL_TREEVAL' in process_entry:      # LEGACY ENTRY POINT
+                process = ':'.join(process.split(':')[2:])  # Gets subworkflows + process
             else:
-                print('Ooops, I dont recognise the entry point here')
+                print('Ooops, I\'m programmed to not recognise the given entry point here')
             if len(data_lists) <= 1:
                 condensed_data[process] = [ int(data_lists[0][0]),
                                             Execution.normalise_memory(data_lists[0][1]),
@@ -150,8 +157,6 @@ class Execution():
         This is ensure that the RAPID and FULL pipeline have data of the same width
         which is easier for df ingestion.
         """
-
-
         if len(master_list) == len(data_dict):
             # Indicates that this is a FULL treeval run in which all processes have fun
             return data_dict
@@ -162,7 +167,8 @@ class Execution():
         if set(dict_list) == set(master_list):
             pass # Because it needs no correction
         else:
-            # Checks for missing processes (which is expected between full and rapid) and writes an NA dict
+            # Checks for missing processes (which is expected between full and rapid) and writes an NA list
+            # This makes it MUCH easier to merge into the full dataframe later
             for i in master_list:
                 if i not in dict_list:
                     not_in_run[i] = ['NA', 'NA', 'NA', 'NA', 'NA', 'NA']
@@ -197,11 +203,15 @@ class Execution():
         elif suffix == 'KB':
             output = round((int(float(value[0])) / 1000), 2)
         else:
-            output = 999999999999999 # 999 TB of memory should start alarm bells
+            output = 999999999999999 # Almost a PB of memory should start alarm bells ringing!
         return output
 
 
     def fix_time(time_list: list) -> dict:
+        """
+        Fix all of time!
+        Calculate the total runtime in h, m and s
+        """
         total = 0
         time_dict = {}
         if time_list[0] == "CANNOT":

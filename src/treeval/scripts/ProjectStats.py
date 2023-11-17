@@ -18,7 +18,7 @@ warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 
 # TreeVal imports
 from fileparsing import ProjectStats
-from master_list import master_list, data_for_plotting, subworkflows
+from master_list import master_list, subworkflows
 
 DOCSTRING = f"""
 {'-'*60}
@@ -28,13 +28,30 @@ Written by dp24 / DLBPointon
 {'-'*60}
 
 This script aims to pull actionable insights from data 
-collected from the TreeVal pipeline. Although it could 
-be generalised for others.
+collected from the Nextflow Execution logs. 
+
+It is expected that the pipeline in question uses the
+TreeValProject.Summary groovy module 
+found in the sanger-tol/treeval which collects input
+data statistics (such as file sizes, line counts)
+and merges this with the execution logs
+generated with the below in the nextflow.config:
+
+'''
+trace (open curly brace)
+    enabled = true
+    file    = "$(OCB)params.tracedir(CCB/pipeline_execution_$(OCB)trace_timestamp(CCB).txt"
+    fields  = 'name,status,module,cpus,memory,attempt,realtime,%cpu,%mem,peak_rss'
+(close curly brace)
+'''
+
+CURRENTLY ONLY SUPPORTS TREEVAL: WORKING ON IT!
 
 The main usecase will be the generation of data to ensure
 the maximal efficient usage of HPC resources. We will also 
 be adding support for the co2footprint plugin, to gain 
 insights into the co2 impact of the pipeline.
+
 
 Usage:
 python3 src/treeval/scripts/ProjectStats.py ./treeval-summary-files/1-1-0/
