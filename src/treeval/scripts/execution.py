@@ -111,7 +111,7 @@ class Execution():
                                             Execution.calculate_avg_time(Execution.fix_time(data_lists[0][3].split(' '))),
                                             int(float(data_lists[0][4].split('%')[0])),
                                             int(float(data_lists[0][5].split('%')[0])),
-                                            Execution.normalise_memory(data_lists[0][6].split('\\')[0])]
+                                            round((Execution.normalise_memory(data_lists[0][6].split('\\')[0]) / Execution.normalise_memory(data_lists[0][1])) * 100, 0)]
             else:
                 cpus = []
                 memory = []
@@ -120,27 +120,26 @@ class Execution():
                 mem_percent = []
                 peak_mem = []
                 for i in data_lists:
-                    cpus.append(int(i[0]))                                           # '16'
-                    memory.append(Execution.normalise_memory(i[1]))                  # '130 GB'
+                    cpus.append(int(i[0]))                                           # '16'         - REQUESTED CPU
+                    memory.append(Execution.normalise_memory(i[1]))                  # '130 GB'     - REQUESTED MEM
                     realtime.append(
-                        Execution.fix_time(i[3].split(' '))                          # '29m 33s'
+                        Execution.fix_time(i[3].split(' '))                          # '29m 33s'    - REALTIME EXECUTION TIME
                     )
-                    cpu_percent.append(int(float(i[4].split('%')[0])))               # '1441.5%'
-                    mem_percent.append(int(float(i[5].split('%')[0])))               # '6.5%'
-                    peak_mem.append(Execution.normalise_memory(i[6].split('\\')[0])) # '25.8 GB\n'
+                    cpu_percent.append(int(float(i[4].split('%')[0])))               # '1441.5%'    - CPU UTILISATION PERCENTAGE
+                    mem_percent.append(int(float(i[5].split('%')[0])))               # '6.5%'       - MEM UTILISATION PERCENTAGE
+                    peak_mem.append(Execution.normalise_memory(i[6].split('\\')[0])) # '25.8 GB\n'  - REPORTED PEAK MEMORY | NOW PERCENTAGE OF REQUESTED MEM
                 avg_cpu = sum(cpus) / len(cpus)
                 avg_mem = int(sum(memory) / len(memory))
                 avg_realtime = Execution.calculate_avg_time(realtime)
                 avg_pcpu = sum(cpu_percent) / len(cpu_percent)
                 avg_pmem = sum(mem_percent) / len(mem_percent)
-                avg_peak = sum(peak_mem) / len(peak_mem)
+                avg_peak = round((sum(peak_mem) / len(peak_mem)) / (int(sum(memory) / len(memory))) * 100, 0)
                 condensed_data[process] = [ avg_cpu,
                                             avg_mem,
                                             avg_realtime,
                                             avg_pcpu,
                                             avg_pmem,
                                             avg_peak ]
-
         return condensed_data
 
 
