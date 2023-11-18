@@ -4,12 +4,25 @@ For the TreeVal project, we have included a TreeValProject.summary function in g
 
 The scripts contained in this repo `src/` aim to pull actionable data from these files.
 
-Requirements:
-Python >= 3.10
-pandas
-plotly
-statsmodels
+## Requirements
+Requirements can be seen in the requirements.txt file found in this folder.
 
+These can be installed with:
+
+```
+python -m venv .env
+source .env/bin/activate
+python3 -m pip install -r requirements.txt
+```
+
+You can deactivate the environment with a simple
+
+```
+deactivate
+```
+and reactivate with the `source` command used above.
+
+## Run the script
 
 Run the script with:
 ```
@@ -23,12 +36,12 @@ python3 src/treeval/scripts/ProjectStats.py ./treeval-summary-files/1-1-0/
 python3 src/treeval/scripts/ProjectStats.py /lustre/scratch123/tol/resources/treeval/treeval_stats/release-1-0-0/
 ```
 
-Current Example Output:
+## Example
 ```
 --------------------------------------------------
  TreeValProject.Summary Stats!
 --------------------------------------------------
- Total data points: 235 
+ Total data points: 235
 --------------------------------------------------
  Unique CLADE count:
 Clade
@@ -74,5 +87,4 @@ TreeVal_run_ilMalNeus2_1_FULL_2023-10-25_18-58-23.txt
 
 TODO:
 - Include options to add the co2footprint data to the information. Must be optional as not everyone will run it.
-- Write the execution class for execution log data.
-- Output graphs summarising the stats.
+- Output graphs summarising the stats. (Done for 80% of mem cases, issues with subworkflows inside subworkflows)

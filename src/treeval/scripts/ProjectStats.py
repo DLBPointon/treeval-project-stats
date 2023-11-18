@@ -27,11 +27,11 @@ TreeVal Project Summary Stats
 Written by dp24 / DLBPointon
 {'-'*60}
 
-This script aims to pull actionable insights from data 
-collected from the Nextflow Execution logs. 
+This script aims to pull actionable insights from data
+collected from the Nextflow Execution logs.
 
 It is expected that the pipeline in question uses the
-TreeValProject.Summary groovy module 
+TreeValProject.Summary groovy module
 found in the sanger-tol/treeval which collects input
 data statistics (such as file sizes, line counts)
 and merges this with the execution logs
@@ -48,8 +48,8 @@ trace (open curly brace)
 CURRENTLY ONLY SUPPORTS TREEVAL: WORKING ON IT!
 
 The main usecase will be the generation of data to ensure
-the maximal efficient usage of HPC resources. We will also 
-be adding support for the co2footprint plugin, to gain 
+the maximal efficient usage of HPC resources. We will also
+be adding support for the co2footprint plugin, to gain
 insights into the co2 impact of the pipeline.
 
 
@@ -72,13 +72,13 @@ def get_command_args(args=None):
     )
 
     parser.add_argument("DIR", action="store", help="Directory of input Summary Files", type=str)
-    
+
     parser.add_argument('-c', "--co2footprint", action="store", help="Directory of input CO2 Summary Files", type=str)
 
     parser.add_argument("-o", "--output", action="store", help="Output directory location", default="./StatGraphs/", type=str)
 
     parser.add_argument("-v", "--version", action="version", version="v1.0.0")
-    
+
     parser.add_argument("--verbose", action="store", type=bool, default=False, help="Verbosity, do you want more information on the run?")
 
     options = parser.parse_args(args)
@@ -104,7 +104,7 @@ def generate_genome_vs_runtime(data_df: pd.DataFrame):
                                 'Clade' : 'Clade'})
 
     graph_ALL = plotly.offline.plot(fig, include_plotlyjs=False, output_type='div')
-    
+
     fig = px.scatter(data_df[data_df['Entry_Point'] == 'FULL'], x='Duration_(Hrs)', y='Fasta_(mb)',
                     height=400,
                     color='Clade', hover_data=['Unique_name'], trendline="ols",
@@ -204,7 +204,6 @@ def generate_hic_vs_runtime(data_df: pd.DataFrame):
                     height=400)
     graph_ALL = plotly.offline.plot(fig, include_plotlyjs=False, output_type='div')
 
-
     fig = px.scatter(data_df[data_df['Entry_Point'] == 'FULL'], x='Duration_(Hrs)', y='HiC_(TOTAL_GB)',
                     color='Clade', hover_data=['Prefix'],
                     trendline_options=dict(log_x=True), trendline_scope="overall", trendline_color_override="black",
@@ -257,7 +256,7 @@ def plot_average_mem_of_super_module(data_df: pd.DataFrame):
     plt.title("\n".join('HIC_MAPPING:CRAM_FILTER_ALIGN_BWAMEM2_FIXMATE_SORT-AVERAGE_P_MEM'.split(':')))
     plt.ylabel('Memory Utilisation (%)')
     plt.ylim(0,100)
-    
+
     plt.savefig('HIC_super_module_average_mem.png')
     plt.clf()
 
@@ -273,7 +272,7 @@ def plot_average_cpu_of_super_module(data_df: pd.DataFrame):
     plt.title("\n".join('HIC_MAPPING:CRAM_FILTER_ALIGN_BWAMEM2_FIXMATE_SORT-AVERAGE_P_CPU'.split(':')))
     plt.ylabel('CPU Utilisation (%)')
     plt.ylim(0,1600)
-    
+
     plt.savefig('HIC_super_module_average_cpu.png')
     plt.clf()
 
@@ -295,12 +294,12 @@ def plot_mem_boxplots(name: str, entry: str, data_df: pd.DataFrame, list_of_proc
 
     data_df_P_mem   = data_df[processes_mem].copy()
     data_df_P_mem.columns = generate_new_column_names(data_df_P_mem.columns)
-    
+
     data_df_P_peak = data_df[processes_peak]
     data_df_P_peak.columns = generate_new_column_names(data_df_P_peak.columns)
 
     data_df_P_peak = data_df_P_peak.iloc[:, :] # Drops the unique name column otherwise plots per name and breaks max()
-    max_values = data_df_P_peak.max()           # Get the max value per process 
+    max_values = data_df_P_peak.max()           # Get the max value per process
     peak = pd.DataFrame(max_values)             # Make dataframe max()
     if verbose:
         print(f"---\n\n>>> {name}_{entry}")
@@ -317,7 +316,7 @@ def plot_mem_boxplots(name: str, entry: str, data_df: pd.DataFrame, list_of_proc
     fig.set_xticklabels(processes, rotation=90, fontsize=6)
     fig.set_xlabel("Ticket", fontsize=6)
     plt.subplots_adjust(bottom=0.4)
-    
+
     box = fig.get_figure()
 
     box.savefig(f"{outdir}mem_for_{name}_{entry}.png")
@@ -346,7 +345,7 @@ def print_report(data_df: pd.DataFrame, empties: list, verbose: bool, outdir: st
         output_list = breaker + "TreeVal Project Summary Stats! \n" + breaker + f"Total data points: {len(data_df)}\n" + breaker + f"Unique CLADE count:\n{data_df['Clade'].value_counts()}\n" + breaker + f"Run Type Count:\n{data_df['Entry_Point'].value_counts()}\n" + breaker + f"Ticket Type Count:\n{data_df['Ticket'].value_counts()}\n" + breaker
         with open(f"{outdir}StatsSummary.txt", 'w') as file:
             file.write(output_list)
-        
+
         stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
         stdout.write(f"{Colours.BLUE}TreeVal{Colours.END}{Colours.RED}Project{Colours.END}.{Colours.GREEN}Summary{Colours.END} {Colours.YELLOW}Stats{Colours.END}!\n ALL DONE!!\n\n\n")
         stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
@@ -380,7 +379,7 @@ def main():
                                     data.pacbio_avg,data.cram_avg,
                                     data.header_block.pacbio_totaldata, data.header_block.cram_totaldata]
             data_and_execution = data_list + data.execution.list_of_list
-            
+
             df_columns = [  'Unique_name', 'Entry_Point',
                             'Pipeline_Version', 'Duration_(Hrs)',
                             'Clade', 'Prefix',
@@ -390,7 +389,7 @@ def main():
 
             df_columns += data.execution.headers # Adds execution log headers to the columns list
 
-            list_of_lists.append(  
+            list_of_lists.append(
                                     data_and_execution
                                 )
 
@@ -435,7 +434,7 @@ def main():
                 )
 
     #print(ProjectStats(usable_data))
-    """ 
+    """
         a1, a2, a3 = generate_genome_vs_runtime(subset_df)
 
         b1, b2, b3 = generate_clade_vs_runtime(subset_df)
