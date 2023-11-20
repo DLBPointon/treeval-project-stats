@@ -10,8 +10,9 @@ from sys import stdout
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
+import matplotlib.transforms as transforms
+import time
 import seaborn as sns
-
 import warnings
 
 warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
@@ -246,6 +247,9 @@ def generate_3d_graphs(data_df: pd.DataFrame):
 
 
 def plot_average_mem_of_super_module(data_df: pd.DataFrame):
+    # TODO: function needs generalising
+    mean = np.nanmean(data_df['HIC_MAPPING:CRAM_FILTER_ALIGN_BWAMEM2_FIXMATE_SORT-AVERAGE_PEAK_MEMORY'])
+
     colormap = plt.cm.bwr #or any other colormap
     plt.scatter(x = data_df['Unique_name'],
                 y = data_df['HIC_MAPPING:CRAM_FILTER_ALIGN_BWAMEM2_FIXMATE_SORT-AVERAGE_P_MEM'],
@@ -255,9 +259,25 @@ def plot_average_mem_of_super_module(data_df: pd.DataFrame):
     plt.colorbar()
     plt.title("\n".join('HIC_MAPPING:CRAM_FILTER_ALIGN_BWAMEM2_FIXMATE_SORT-AVERAGE_P_MEM'.split(':')))
     plt.ylabel('Memory Utilisation (%)')
-    plt.ylim(0,100)
+    plt.ylim(0,110)
+
+    ax2 = plt.twinx()
+    ax2.set(ylim=(0,110))
+
+    ax2.scatter(x = data_df['Unique_name'],
+                y = data_df['HIC_MAPPING:CRAM_FILTER_ALIGN_BWAMEM2_FIXMATE_SORT-AVERAGE_PEAK_MEMORY']
+    )
+    plt.axhline(y=np.nanmean(data_df['HIC_MAPPING:CRAM_FILTER_ALIGN_BWAMEM2_FIXMATE_SORT-AVERAGE_PEAK_MEMORY']), linestyle='--', color='red', label='Avg')
+
+    trans = transforms.blended_transform_factory(
+                ax2.get_yticklabels()[0].get_transform(), ax2.transData
+        )
+
+    ax2.text(0,mean, "{:.0f}".format(mean), color="red", transform=trans,
+        ha="right", va="center")
 
     plt.savefig('HIC_super_module_average_mem.png')
+
     plt.clf()
 
 
@@ -298,12 +318,12 @@ def plot_mem_boxplots(name: str, entry: str, data_df: pd.DataFrame, list_of_proc
     data_df_P_peak = data_df[processes_peak]
     data_df_P_peak.columns = generate_new_column_names(data_df_P_peak.columns)
 
-    data_df_P_peak = data_df_P_peak.iloc[:, :] # Drops the unique name column otherwise plots per name and breaks max()
+    data_df_P_peak = data_df_P_peak.iloc[:, :]  # Drops the unique name column otherwise plots per name and breaks max()
     max_values = data_df_P_peak.max()           # Get the max value per process
     peak = pd.DataFrame(max_values)             # Make dataframe max()
     if verbose:
         print(f"---\n\n>>> {name}_{entry}")
-        print(peak)                                 # For Debugging
+        print(peak)
 
     # Actually generates the graph
     sns.set(rc = {'figure.figsize':(25,25)})
@@ -323,7 +343,7 @@ def plot_mem_boxplots(name: str, entry: str, data_df: pd.DataFrame, list_of_proc
     plt.clf()                                   # Clear plot
 
 
-def print_report(data_df: pd.DataFrame, empties: list, verbose: bool, outdir: str):
+def print_report(data_df: pd.DataFrame, time: list, empties: list, verbose: bool, outdir: str):
     if verbose:
         stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
         stdout.write(f"{Colours.BLUE}TreeVal{Colours.END}{Colours.RED}Project{Colours.END}.{Colours.GREEN}Summary{Colours.END} {Colours.YELLOW}Stats{Colours.END}!\n")
@@ -347,10 +367,16 @@ def print_report(data_df: pd.DataFrame, empties: list, verbose: bool, outdir: st
             file.write(output_list)
 
         stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
-        stdout.write(f"{Colours.BLUE}TreeVal{Colours.END}{Colours.RED}Project{Colours.END}.{Colours.GREEN}Summary{Colours.END} {Colours.YELLOW}Stats{Colours.END}!\n ALL DONE!!\n\n\n")
+        stdout.write(f"""{Colours.BLUE}TreeVal{Colours.END}{Colours.RED}Project{Colours.END}.{Colours.GREEN}Summary{Colours.END} {Colours.YELLOW}Stats{Colours.END}!
+ALL DONE!!
+I took: {round(time[1] - time[0], 2)} Seconds!
+
+""")
         stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
 
 def main():
+    start = time.time()
+
     options = get_command_args()
     if options.output[-1] != '/':
         outdir = options.output +'/'
@@ -447,12 +473,15 @@ def main():
 
         f1, f2, f3 = generate_3d_graphs(subset_df)
     """
+    end = time.time()
     print_report(
         data_df = header_df,
+        time    = [start, end],
         empties = empty_files,
         verbose = options.verbose,
         outdir  = outdir
     )
+
 
 if __name__ == "__main__":
     main()
