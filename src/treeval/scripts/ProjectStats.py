@@ -18,7 +18,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 
 # TreeVal imports
-from fileparsing import ProjectStats
+from parse_run import RunParser
 from master_list import master_list, subworkflows
 
 DOCSTRING = f"""
@@ -81,6 +81,8 @@ def get_command_args(args=None):
     parser.add_argument("-v", "--version", action="version", version="v1.0.0")
 
     parser.add_argument("--verbose", action="store", type=bool, default=False, help="Verbosity, do you want more information on the run?")
+
+    parser.add_argument("--no_graph", action="store", type=bool, default=True, help="For debugging, do not generate graphs!")
 
     options = parser.parse_args(args)
     return options
@@ -344,6 +346,9 @@ def plot_mem_boxplots(name: str, entry: str, data_df: pd.DataFrame, list_of_proc
 
 
 def print_report(data_df: pd.DataFrame, time: list, empties: list, verbose: bool, outdir: str):
+    breaker = f"{'-'*50}\n"
+    output_list = breaker + "TreeVal Project Summary Stats! \n" + breaker + f"Total data points: {len(data_df)}\n" + breaker + f"Unique CLADE count:\n{data_df['Clade'].value_counts()}\n" + breaker + f"Run Type Count:\n{data_df['Entry_Point'].value_counts()}\n" + breaker + f"Ticket Type Count:\n{data_df['Ticket'].value_counts()}\n" + breaker
+
     if verbose:
         stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
         stdout.write(f"{Colours.BLUE}TreeVal{Colours.END}{Colours.RED}Project{Colours.END}.{Colours.GREEN}Summary{Colours.END} {Colours.YELLOW}Stats{Colours.END}!\n")
@@ -361,8 +366,6 @@ def print_report(data_df: pd.DataFrame, time: list, empties: list, verbose: bool
             stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
 
     if not verbose:
-        breaker = f"{'-'*50}\n"
-        output_list = breaker + "TreeVal Project Summary Stats! \n" + breaker + f"Total data points: {len(data_df)}\n" + breaker + f"Unique CLADE count:\n{data_df['Clade'].value_counts()}\n" + breaker + f"Run Type Count:\n{data_df['Entry_Point'].value_counts()}\n" + breaker + f"Ticket Type Count:\n{data_df['Ticket'].value_counts()}\n" + breaker
         with open(f"{outdir}StatsSummary.txt", 'w') as file:
             file.write(output_list)
 
@@ -373,6 +376,7 @@ I took: {round(time[1] - time[0], 2)} Seconds!
 
 """)
         stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
+    return output_list
 
 def main():
     start = time.time()
@@ -395,7 +399,7 @@ def main():
             pass
         else:
             usable_data = options.DIR + file
-            data = ProjectStats(usable_data)
+            data = RunParser(usable_data)
             # print(data.execution.list_of_list) # | Execution log data
             # print(data.execution.headers)      # | Execution log headers
             data_list = [data.uniquename, data.header_block.entrypnt,
@@ -418,49 +422,48 @@ def main():
             list_of_lists.append(
                                     data_and_execution
                                 )
+    if options.no_graph:
+        header_df = pd.DataFrame(
+                                list_of_lists,
+                                columns = df_columns
+                                )
 
-    header_df = pd.DataFrame(
-                            list_of_lists,
-                            columns = df_columns
-                            )
+        subset_df = subset_dataframe(header_df, ticket = [])
 
-    subset_df = subset_dataframe(header_df, ticket = [])
+        #
+        # THE PROCESS DATA IS IN LIST FORMAT ORGANISED AS: [ avg_cpu, avg_mem, avg_realtime, avg_pcpu, avg_pmem, avg_peak ]
+        # FOR GRAPHING THIS NEEDS SPLITTING OUT INTO COLUMNS
+        # DOING IT LIKE THIS IS NOT GOOD FOR PERFORMANCE HENCE THE WARNING FILTER ON LINE 17
+        #
+        for i in master_list:
+            subset_df[[f'{i}-AVERAGE_CPU', f'{i}-AVERAGE_MEMORY', f'{i}-AVERAGE_REALTIME', f'{i}-AVERAGE_P_CPU', f'{i}-AVERAGE_P_MEM', f'{i}-AVERAGE_PEAK_MEMORY']] = pd.DataFrame(subset_df[f'{i}'].to_list(), index = subset_df.index)
+            subset_df.replace('NA', np.nan, inplace=True)
+            subset_df[[f'{i}-AVERAGE_CPU', f'{i}-AVERAGE_MEMORY', f'{i}-AVERAGE_REALTIME', f'{i}-AVERAGE_P_CPU', f'{i}-AVERAGE_P_MEM', f'{i}-AVERAGE_PEAK_MEMORY']].astype(float)
 
-    #
-    # THE PROCESS DATA IS IN LIST FORMAT ORGANISED AS: [ avg_cpu, avg_mem, avg_realtime, avg_pcpu, avg_pmem, avg_peak ]
-    # FOR GRAPHING THIS NEEDS SPLITTING OUT INTO COLUMNS
-    # DOING IT LIKE THIS IS NOT GOOD FOR PERFORMANCE HENCE THE WARNING FILTER ON LINE 17
-    #
-    for i in master_list:
-        subset_df[[f'{i}-AVERAGE_CPU', f'{i}-AVERAGE_MEMORY', f'{i}-AVERAGE_REALTIME', f'{i}-AVERAGE_P_CPU', f'{i}-AVERAGE_P_MEM', f'{i}-AVERAGE_PEAK_MEMORY']] = pd.DataFrame(subset_df[f'{i}'].to_list(), index = subset_df.index)
-        subset_df.replace('NA', np.nan, inplace=True)
-        subset_df[[f'{i}-AVERAGE_CPU', f'{i}-AVERAGE_MEMORY', f'{i}-AVERAGE_REALTIME', f'{i}-AVERAGE_P_CPU', f'{i}-AVERAGE_P_MEM', f'{i}-AVERAGE_PEAK_MEMORY']].astype(float)
+        subset_df.replace('NA', None) # str 'NA' as you'd expect, causes issues when comparing against int/float
 
-    subset_df.replace('NA', None) # str 'NA' as you'd expect, causes issues when comparing against int/float
+        # TODO: Need generalising much like boxplots
+        plot_average_mem_of_super_module(subset_df)
 
-    # TODO: Need generalising much like boxplots
-    plot_average_mem_of_super_module(subset_df)
+        plot_average_cpu_of_super_module(subset_df)
 
-    plot_average_cpu_of_super_module(subset_df)
+        for subworkflow_name in subworkflows:
+            # Skipping gene alignment at the minute due to subworkflows inside the subworkflow causing over collapsing of data
+            # In this case it will generate a graph containing data for RNA, CDS, CDNA and PEP which are themselves subworkflows
+            # This also means that other sub-subworkflows will be effected
+            if subworkflow_name not in ['GENE_ALIGNMENT', 'CUSTOM_DUMPSOFTWAREVERSIONS']:
+                subworkflow_processes = [i + "" for i in master_list if i.startswith(subworkflow_name)]
+                for x in ['FULL', 'RAPID', 'ALL']:
+                    plot_mem_boxplots(
+                        name = subworkflow_name,
+                        entry = x,
+                        data_df = subset_df,
+                        list_of_processes = subworkflow_processes,
+                        verbose = options.verbose,
+                        outdir = outdir
+                    )
 
-    for subworkflow_name in subworkflows:
-        # Skipping gene alignment at the minute due to subworkflows inside the subworkflow causing over collapsing of data
-        # In this case it will generate a graph containing data for RNA, CDS, CDNA and PEP which are themselves subworkflows
-        # This also means that other sub-subworkflows will be effected
-        if subworkflow_name not in ['GENE_ALIGNMENT', 'CUSTOM_DUMPSOFTWAREVERSIONS']:
-            subworkflow_processes = [i + "" for i in master_list if i.startswith(subworkflow_name)]
-            for x in ['FULL', 'RAPID', 'ALL']:
-                plot_mem_boxplots(
-                    name = subworkflow_name,
-                    entry = x,
-                    data_df = subset_df,
-                    list_of_processes = subworkflow_processes,
-                    verbose = options.verbose,
-                    outdir = outdir
-                )
 
-    #print(ProjectStats(usable_data))
-    """
         a1, a2, a3 = generate_genome_vs_runtime(subset_df)
 
         b1, b2, b3 = generate_clade_vs_runtime(subset_df)
@@ -472,15 +475,126 @@ def main():
         e1, e2, e3 = generate_hic_vs_runtime(subset_df)
 
         f1, f2, f3 = generate_3d_graphs(subset_df)
-    """
-    end = time.time()
-    print_report(
-        data_df = header_df,
-        time    = [start, end],
-        empties = empty_files,
-        verbose = options.verbose,
-        outdir  = outdir
-    )
+
+        end = time.time()
+        cli = print_report(
+            data_df = header_df,
+            time    = [start, end],
+            empties = empty_files,
+            verbose = options.verbose,
+            outdir  = outdir
+        )
+    else:
+        end = time.time()
+        print(f"TreeVal Summary Stats Completed in: {round(end - start, 2)}")
+
+    total_rows = subset_df.shape[0]
+    total_cols = subset_df.shape[1]
+
+    html_string = '''
+        <html>
+            <head>
+                <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+                <style>
+                    body{
+                        margin:0 100;
+                        background:whitesmoke;
+                    }
+                    .boxy{
+                        float: left;
+                        width: 50%;
+                        padding: 50px;
+                    }
+                    .row{
+                        width: 100%;
+                    }
+                    p {text-align: center;}
+                </style>
+                <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
+            </head>
+            <h1>TreeVal Summary Stats Report</h1>
+            <div class="row">
+                <div class="boxy">
+                    <div>
+                        <div class="text-uppercase text-primary font-weight-bold text-xs mb-1"><span>Rows of Data</span></div>
+
+                        <div class="text-dark font-weight-bold h5 mb-0"><span> ''' + str(total_rows) + '''</span></div>
+                    </div>
+                </div>
+                <div class="boxy">
+                    <div class="col mr-2">
+                        <div class="text-uppercase text-success font-weight-bold text-xs mb-1"><span>Columns of Data</span></div>
+
+                        <div class="text-dark font-weight-bold h5 mb-0"><span>''' + str(total_cols) + '''</span></div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h2> General Stats</h2>
+                <p>
+                    ''' + cli + '''
+                <p>
+            </div>
+            <div>
+                <h2> Genome Size vs. Runtime </h2>
+                <!-- *** Section 1 *** --->
+                    ''' + a1 + '''
+                    <!-- *** Section 2 *** --->
+                    ''' + a2 + '''
+                    <!-- *** Section 3 *** --->
+                    ''' + a3 + '''
+            </div>
+            <div>
+                <h2> Clade vs. Runtime </h2>
+                <!-- *** Section 1 *** --->
+                    ''' + b1 + '''
+                    <!-- *** Section 2 *** --->
+                    ''' + b2 + '''
+                    <!-- *** Section 3 *** --->
+                    ''' + b3 + '''
+            </div>
+            <div>
+                <h2> Family vs. Runtime </h2>
+                <!-- *** Section 1 *** --->
+                    ''' + c1 + '''
+                    <!-- *** Section 2 *** --->
+                    ''' + c2 + '''
+                    <!-- *** Section 3 *** --->
+                    ''' + c3 + '''
+            </div>
+            <div>
+                <h2> Longread vs. Runtime </h2>
+                <!-- *** Section 1 *** --->
+                    ''' + d1 + '''
+                    <!-- *** Section 2 *** --->
+                    ''' + d2 + '''
+                    <!-- *** Section 3 *** --->
+                    ''' + d3 + '''
+            </div>
+            <div>
+                <h2> HiC vs. Runtime </h2>
+                <!-- *** Section 1 *** --->
+                    ''' + e1 + '''
+                    <!-- *** Section 2 *** --->
+                    ''' + e2 + '''
+                    <!-- *** Section 3 *** --->
+                    ''' + e3 + '''
+            </div>
+            <div>
+                <h2> 3D Graphs </h2>
+                <!-- *** Section 1 *** --->
+                    ''' + f1 + '''
+                    <!-- *** Section 2 *** --->
+                    ''' + f2 + '''
+                    <!-- *** Section 3 *** --->
+                    ''' + f3 + '''
+            </div>
+            </body>
+        </html>
+        '''
+
+    with open('TreeValSummary.html', 'w') as file:
+        file.write(html_string)
 
 
 if __name__ == "__main__":
