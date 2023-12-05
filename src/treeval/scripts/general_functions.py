@@ -49,12 +49,12 @@ def fix_time(time_list: list) -> dict:
                 total += int(i.split('d')[0]) * 86400        # number of days * seconds in day
             elif i.endswith('h'):
                 total += (int(i.split('h')[0]) * 60) * 60    # number of hours * minutes in hour * seconds in minute
-            elif i.endswith('ms'):
-                total += int(float(i.split('ms')[0])) * 1000 # number of milliseconds in seconds
             elif i.endswith('m'):
                 total += int(i.split('m')[0]) * 60           # number of minutes * seconds in minute
             elif i.endswith('s'):
                 total += int(float(i.split('s')[0]))         # nothing.. it's already in seconds
+            elif i.endswith('ms'):
+                total += int(float(i.split('ms')[0])) / 1000 # divide ms by 1000 to convert milliseconds to seconds
             else:
                 total = int(float(i))                        # nothing.. means its the newer formats which are already converted
         time_dict['s'] = total
