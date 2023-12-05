@@ -96,6 +96,47 @@ def subset_dataframe(data_df: pd.DataFrame, ticket: list):
     return df
 
 
+def graph_efficiency(data: pd.DataFrame):
+    data.index.name = 'Org'
+    mean = np.nanmean(data['MEM_EFF'])
+
+    data = data.reset_index()
+    for k, v in {'MEM':1000, 'CPU': 50}.items():
+        data.plot(kind='scatter', x='Org', y=f'{k}_EFF')
+        plt.axhline(y=np.nanmean(data[f'{k}_EFF']), linestyle='--', color='red', label='Avg')
+        plt.axhline(y=100, linestyle='solid', color='black', label='AIM')
+        plt.yticks(np.arange(0, max(data[f'{k}_EFF']), v))
+
+        value = ( '' if k == 'CPU' else 'PEAK ')
+
+        plt.ylabel(f'{k} (%)')
+        plt.title(f"REQUESTED {k} AS % MORE THAN {value}USAGE")
+
+        plt.xticks(rotation=90)
+        plt.savefig(f'Efficiency_{k}.png')
+        plt.clf()
+
+    return [
+            f"CPU min/max {round(min(data['CPU_EFF']), 2)}% / {round(max(data['CPU_EFF']), 2)}%",
+            f"MEM min/max {round(min(data['MEM_EFF']), 2)}% / {round(max(data['MEM_EFF']), 2)}%"
+            ]
+
+
+def plot_hic_size_vs_mem(data_df: pd.DataFrame):
+
+    subset_df = data_df[['Unique_name', 'Clade', 'Entry_Point', 'Fasta_(mb)', 'HIC_CONTAINERS', 'HiC_(TOTAL_GB)', 'HIC_MAPPING:CRAM_FILTER_ALIGN_BWAMEM2_FIXMATE_SORT-AVERAGE_PEAK_MEMORY', 'HIC_MAPPING:CRAM_FILTER_ALIGN_BWAMEM2_FIXMATE_SORT-TOTAL_PEAK_MEMORY']]
+    subset_df['HIC_MAPPING:CRAM_FILTER_ALIGN_BWAMEM2_FIXMATE_SORT-TOTAL_PEAK_MEMORY'] =     subset_df['HIC_MAPPING:CRAM_FILTER_ALIGN_BWAMEM2_FIXMATE_SORT-TOTAL_PEAK_MEMORY'] / 1000
+    fig = px.scatter(subset_df, x='HiC_(TOTAL_GB)', y='HIC_MAPPING:CRAM_FILTER_ALIGN_BWAMEM2_FIXMATE_SORT-TOTAL_PEAK_MEMORY',
+                color = 'Clade', height=400, hover_data=['Unique_name'], trendline="ols",
+                trendline_options=dict(log_x=True), #trendline_scope="overall", #trendline_color_override="black",
+                title = 'Size of HIC data (GB) against Peak memory for Super Module - ALL'
+            )
+
+
+    graph_ALL = plotly.offline.plot(fig, include_plotlyjs=False, output_type='div')
+    return graph_ALL
+
+
 def generate_genome_vs_runtime(data_df: pd.DataFrame):
     fig = px.scatter(data_df, x='Duration_(Hrs)', y='Fasta_(mb)',
                     height=400,
@@ -302,6 +343,7 @@ def plot_average_cpu_of_super_module(data_df: pd.DataFrame):
 def generate_new_column_names(column_names):
     return ["CRAM_SUPER_MODULE" if i.split(':')[1].startswith('CRAM') else 'Unique_name' if i == 'Unique_name' else i.split(':')[1].split('-')[0] for i in column_names]
 
+
 def plot_mem_boxplots(name: str, entry: str, data_df: pd.DataFrame, list_of_processes: list, verbose: bool, outdir: str):
 
     if entry == 'ALL':
@@ -345,9 +387,10 @@ def plot_mem_boxplots(name: str, entry: str, data_df: pd.DataFrame, list_of_proc
     plt.clf()                                   # Clear plot
 
 
-def print_report(data_df: pd.DataFrame, time: list, empties: list, verbose: bool, outdir: str):
+def print_report(data_df: pd.DataFrame, time: list, efficiency: list, empties: list, verbose: bool, outdir: str):
     breaker = f"{'-'*50}\n"
-    output_list = breaker + "TreeVal Project Summary Stats! \n" + breaker + f"Total data points: {len(data_df)}\n" + breaker + f"Unique CLADE count:\n{data_df['Clade'].value_counts()}\n" + breaker + f"Run Type Count:\n{data_df['Entry_Point'].value_counts()}\n" + breaker + f"Ticket Type Count:\n{data_df['Ticket'].value_counts()}\n" + breaker
+
+    output_list = breaker + "TreeVal Project Summary Stats! \n" + breaker + f"Total data points: {len(data_df)}\n" + breaker + f"Unique CLADE count:\n{data_df['Clade'].value_counts()}\n" + breaker + f"Run Type Count:\n{data_df['Entry_Point'].value_counts()}\n" + breaker + f"Ticket Type Count:\n{data_df['Ticket'].value_counts()}\n" + breaker + '\n'.join(efficiency) + breaker
 
     if verbose:
         stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
@@ -361,6 +404,10 @@ def print_report(data_df: pd.DataFrame, time: list, empties: list, verbose: bool
         stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
         stdout.write(f"Ticket Type Count:\n{data_df['Ticket'].value_counts()}\n")
         stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
+        stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
+        stdout.write(f"Efficiency across all runs:\n")
+        for i in efficiency:
+            stdout.write(f"{i}\n")
         if len(empties) >= 1:
             [stdout.write(f"Empty Files!:\n{i}\n") for i in empties]
             stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
@@ -373,6 +420,9 @@ def print_report(data_df: pd.DataFrame, time: list, empties: list, verbose: bool
         stdout.write(f"""{Colours.BLUE}TreeVal{Colours.END}{Colours.RED}Project{Colours.END}.{Colours.GREEN}Summary{Colours.END} {Colours.YELLOW}Stats{Colours.END}!
 ALL DONE!!
 I took: {round(time[1] - time[0], 2)} Seconds!
+
+Now some efficiency for everything so far:
+{efficiency}
 
 """)
         stdout.write(f"{Colours.HEADER}-"*50 + f'\n {Colours.END}')
@@ -392,6 +442,7 @@ def main():
 
     list_of_lists = []
     empty_files = []
+    efficiency_data = {}
 
     for file in os.listdir(options.DIR):
         if os.stat(options.DIR + file).st_size == 0:
@@ -400,13 +451,16 @@ def main():
         else:
             usable_data = options.DIR + file
             data = RunParser(usable_data)
+
+            efficiency_data[data.uniquename] = { 'MEM_EFF': data.execution.efficiency['MEM_EFFICIENCY']['MEM_RUN_EFF'], 'CPU_EFF': data.execution.efficiency['CPU_EFFICIENCY']['CPU_RUN_EFF']}
             # print(data.execution.list_of_list) # | Execution log data
             # print(data.execution.headers)      # | Execution log headers
             data_list = [data.uniquename, data.header_block.entrypnt,
                                     data.header_block.version,data.header_block.duration.get('h'),
                                     data.header_block.genome_clade,data.id,
                                     data.fasta_mb,data.header_block.genome_ticket,
-                                    data.pacbio_avg,data.cram_avg,
+                                    data.pacbio_avg,data.header_block.cram_containers,
+                                    data.cram_avg,
                                     data.header_block.pacbio_totaldata, data.header_block.cram_totaldata]
             data_and_execution = data_list + data.execution.list_of_list
 
@@ -414,7 +468,7 @@ def main():
                             'Pipeline_Version', 'Duration_(Hrs)',
                             'Clade', 'Prefix',
                             'Fasta_(mb)', 'Ticket',
-                            'Longread_(AVG_GB)', 'HiC_(AVG_GB)',
+                            'Longread_(AVG_GB)', 'HIC_CONTAINERS', 'HiC_(AVG_GB)',
                             'Longread_(TOTAL_GB)', 'HiC_(TOTAL_GB)' ]
 
             df_columns += data.execution.headers # Adds execution log headers to the columns list
@@ -422,6 +476,13 @@ def main():
             list_of_lists.append(
                                     data_and_execution
                                 )
+    efficiency_df = pd.DataFrame.from_dict(
+                                efficiency_data,
+                                orient = 'index'
+    )
+    efficiency_info = graph_efficiency(efficiency_df)
+
+
     if options.no_graph:
         header_df = pd.DataFrame(
                                 list_of_lists,
@@ -436,18 +497,21 @@ def main():
         # DOING IT LIKE THIS IS NOT GOOD FOR PERFORMANCE HENCE THE WARNING FILTER ON LINE 17
         #
         for i in master_list:
-            subset_df[[f'{i}-AVERAGE_CPU', f'{i}-AVERAGE_MEMORY', f'{i}-AVERAGE_REALTIME', f'{i}-AVERAGE_P_CPU', f'{i}-AVERAGE_P_MEM', f'{i}-AVERAGE_PEAK_MEMORY']] = pd.DataFrame(subset_df[f'{i}'].to_list(), index = subset_df.index)
+            subset_df[[f'{i}-AVERAGE_CPU', f'{i}-AVERAGE_MEMORY', f'{i}-TOTAL_MEMORY', f'{i}-AVERAGE_REALTIME', f'{i}-AVERAGE_P_CPU', f'{i}-AVERAGE_P_MEM', f'{i}-AVERAGE_PEAK_MEMORY', f'{i}-TOTAL_PEAK_MEMORY']] = pd.DataFrame(subset_df[f'{i}'].to_list(), index = subset_df.index)
             subset_df.replace('NA', np.nan, inplace=True)
-            subset_df[[f'{i}-AVERAGE_CPU', f'{i}-AVERAGE_MEMORY', f'{i}-AVERAGE_REALTIME', f'{i}-AVERAGE_P_CPU', f'{i}-AVERAGE_P_MEM', f'{i}-AVERAGE_PEAK_MEMORY']].astype(float)
+            subset_df[[f'{i}-AVERAGE_CPU', f'{i}-AVERAGE_MEMORY', f'{i}-TOTAL_MEMORY', f'{i}-AVERAGE_REALTIME', f'{i}-AVERAGE_P_CPU', f'{i}-AVERAGE_P_MEM', f'{i}-AVERAGE_PEAK_MEMORY', f'{i}-TOTAL_PEAK_MEMORY']].astype(float)
 
         subset_df.replace('NA', None) # str 'NA' as you'd expect, causes issues when comparing against int/float
 
         # TODO: Need generalising much like boxplots
+
+        a0 = plot_hic_size_vs_mem(subset_df)
+
         plot_average_mem_of_super_module(subset_df)
 
         plot_average_cpu_of_super_module(subset_df)
 
-        for subworkflow_name in subworkflows:
+        """ for subworkflow_name in subworkflows:
             # Skipping gene alignment at the minute due to subworkflows inside the subworkflow causing over collapsing of data
             # In this case it will generate a graph containing data for RNA, CDS, CDNA and PEP which are themselves subworkflows
             # This also means that other sub-subworkflows will be effected
@@ -461,7 +525,7 @@ def main():
                         list_of_processes = subworkflow_processes,
                         verbose = options.verbose,
                         outdir = outdir
-                    )
+                    ) """
 
 
         a1, a2, a3 = generate_genome_vs_runtime(subset_df)
@@ -478,11 +542,12 @@ def main():
 
         end = time.time()
         cli = print_report(
-            data_df = header_df,
-            time    = [start, end],
-            empties = empty_files,
-            verbose = options.verbose,
-            outdir  = outdir
+            data_df     = header_df,
+            time        = [start, end],
+            efficiency  = efficiency_info,
+            empties     = empty_files,
+            verbose     = options.verbose,
+            outdir      = outdir
         )
     else:
         end = time.time()
@@ -534,6 +599,11 @@ def main():
                 <p>
                     ''' + cli + '''
                 <p>
+            </div>
+            <div>
+                <h2> mem vs hic data</h2>
+                <!-- *** Section 1 *** --->
+                    ''' + a0 + '''
             </div>
             <div>
                 <h2> Genome Size vs. Runtime </h2>
