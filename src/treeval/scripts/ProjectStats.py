@@ -19,6 +19,7 @@ warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 
 # TreeVal imports
 from parse_run import RunParser
+from html_template import html_report
 from master_list import master_list, subworkflows
 
 DOCSTRING = f"""
@@ -59,12 +60,12 @@ python3 src/treeval/scripts/ProjectStats.py ./treeval-summary-files/1-1-0/
 
 """
 class Colours:
-    HEADER = '\033[95m'
-    BLUE = '\033[94m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    RED = '\033[91m'
-    END = '\033[0m'
+    HEADER  = '\033[95m'
+    BLUE    = '\033[94m'
+    GREEN   = '\033[92m'
+    YELLOW  = '\033[93m'
+    RED     = '\033[91m'
+    END     = '\033[0m'
 
 
 def get_command_args(args=None):
@@ -82,7 +83,7 @@ def get_command_args(args=None):
 
     parser.add_argument("--verbose", action="store", type=bool, default=False, help="Verbosity, do you want more information on the run?")
 
-    parser.add_argument("--no_graph", action="store", type=bool, default=True, help="For debugging, do not generate graphs!")
+    parser.add_argument("--no_graphs", action="store", type=bool, default=True, help="For debugging, do not generate graphs!")
 
     options = parser.parse_args(args)
     return options
@@ -455,13 +456,14 @@ def main():
             efficiency_data[data.uniquename] = { 'MEM_EFF': data.execution.efficiency['MEM_EFFICIENCY']['MEM_RUN_EFF'], 'CPU_EFF': data.execution.efficiency['CPU_EFFICIENCY']['CPU_RUN_EFF']}
             # print(data.execution.list_of_list) # | Execution log data
             # print(data.execution.headers)      # | Execution log headers
-            data_list = [data.uniquename, data.header_block.entrypnt,
-                                    data.header_block.version,data.header_block.duration.get('h'),
-                                    data.header_block.genome_clade,data.id,
-                                    data.fasta_mb,data.header_block.genome_ticket,
-                                    data.pacbio_avg,data.header_block.cram_containers,
-                                    data.cram_avg,
-                                    data.header_block.pacbio_totaldata, data.header_block.cram_totaldata]
+            data_list = [   data.uniquename, data.header_block.entrypnt,
+                            data.header_block.version,data.header_block.duration.get('h'),
+                            data.header_block.genome_clade,data.id,
+                            data.fasta_mb,data.header_block.genome_ticket,
+                            data.pacbio_avg,data.header_block.cram_containers,
+                            data.cram_avg,
+                            data.header_block.pacbio_totaldata, data.header_block.cram_totaldata
+                        ]
             data_and_execution = data_list + data.execution.list_of_list
 
             df_columns = [  'Unique_name', 'Entry_Point',
@@ -469,13 +471,17 @@ def main():
                             'Clade', 'Prefix',
                             'Fasta_(mb)', 'Ticket',
                             'Longread_(AVG_GB)', 'HIC_CONTAINERS', 'HiC_(AVG_GB)',
-                            'Longread_(TOTAL_GB)', 'HiC_(TOTAL_GB)' ]
+                            'Longread_(TOTAL_GB)', 'HiC_(TOTAL_GB)'
+                        ]
 
             df_columns += data.execution.headers # Adds execution log headers to the columns list
 
             list_of_lists.append(
                                     data_and_execution
                                 )
+
+            # collect data.execution.master_dict and get totals.
+
     efficiency_df = pd.DataFrame.from_dict(
                                 efficiency_data,
                                 orient = 'index'
@@ -483,7 +489,7 @@ def main():
     efficiency_info = graph_efficiency(efficiency_df)
 
 
-    if options.no_graph:
+    if options.no_graphs:
         header_df = pd.DataFrame(
                                 list_of_lists,
                                 columns = df_columns
@@ -551,120 +557,14 @@ def main():
         )
     else:
         end = time.time()
-        print(f"TreeVal Summary Stats Completed in: {round(end - start, 2)}")
+        stdout.write(f"TreeVal Summary Stats Completed in: {round(end - start, 2)}")
 
-    total_rows = subset_df.shape[0]
-    total_cols = subset_df.shape[1]
-
-    html_string = '''
-        <html>
-            <head>
-                <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
-                <style>
-                    body{
-                        margin:0 100;
-                        background:whitesmoke;
-                    }
-                    .boxy{
-                        float: left;
-                        width: 50%;
-                        padding: 50px;
-                    }
-                    .row{
-                        width: 100%;
-                    }
-                    p {text-align: center;}
-                </style>
-                <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
-            </head>
-            <h1>TreeVal Summary Stats Report</h1>
-            <div class="row">
-                <div class="boxy">
-                    <div>
-                        <div class="text-uppercase text-primary font-weight-bold text-xs mb-1"><span>Rows of Data</span></div>
-
-                        <div class="text-dark font-weight-bold h5 mb-0"><span> ''' + str(total_rows) + '''</span></div>
-                    </div>
-                </div>
-                <div class="boxy">
-                    <div class="col mr-2">
-                        <div class="text-uppercase text-success font-weight-bold text-xs mb-1"><span>Columns of Data</span></div>
-
-                        <div class="text-dark font-weight-bold h5 mb-0"><span>''' + str(total_cols) + '''</span></div>
-                    </div>
-                </div>
-            </div>
-            <div>
-                <h2> General Stats</h2>
-                <p>
-                    ''' + cli + '''
-                <p>
-            </div>
-            <div>
-                <h2> mem vs hic data</h2>
-                <!-- *** Section 1 *** --->
-                    ''' + a0 + '''
-            </div>
-            <div>
-                <h2> Genome Size vs. Runtime </h2>
-                <!-- *** Section 1 *** --->
-                    ''' + a1 + '''
-                    <!-- *** Section 2 *** --->
-                    ''' + a2 + '''
-                    <!-- *** Section 3 *** --->
-                    ''' + a3 + '''
-            </div>
-            <div>
-                <h2> Clade vs. Runtime </h2>
-                <!-- *** Section 1 *** --->
-                    ''' + b1 + '''
-                    <!-- *** Section 2 *** --->
-                    ''' + b2 + '''
-                    <!-- *** Section 3 *** --->
-                    ''' + b3 + '''
-            </div>
-            <div>
-                <h2> Family vs. Runtime </h2>
-                <!-- *** Section 1 *** --->
-                    ''' + c1 + '''
-                    <!-- *** Section 2 *** --->
-                    ''' + c2 + '''
-                    <!-- *** Section 3 *** --->
-                    ''' + c3 + '''
-            </div>
-            <div>
-                <h2> Longread vs. Runtime </h2>
-                <!-- *** Section 1 *** --->
-                    ''' + d1 + '''
-                    <!-- *** Section 2 *** --->
-                    ''' + d2 + '''
-                    <!-- *** Section 3 *** --->
-                    ''' + d3 + '''
-            </div>
-            <div>
-                <h2> HiC vs. Runtime </h2>
-                <!-- *** Section 1 *** --->
-                    ''' + e1 + '''
-                    <!-- *** Section 2 *** --->
-                    ''' + e2 + '''
-                    <!-- *** Section 3 *** --->
-                    ''' + e3 + '''
-            </div>
-            <div>
-                <h2> 3D Graphs </h2>
-                <!-- *** Section 1 *** --->
-                    ''' + f1 + '''
-                    <!-- *** Section 2 *** --->
-                    ''' + f2 + '''
-                    <!-- *** Section 3 *** --->
-                    ''' + f3 + '''
-            </div>
-            </body>
-        </html>
-        '''
+    shape = [subset_df.shape[0], subset_df.shape[1]]
 
     with open('TreeValSummary.html', 'w') as file:
-        file.write(html_string)
+        file.write(
+            html_report(cli, shape, [a0, a1, a2, a3, b1, b2, b3, c1, c2, c3, d1, d2, d3, e1, e2, e3, f1, f2, f3])
+        )
 
 
 if __name__ == "__main__":

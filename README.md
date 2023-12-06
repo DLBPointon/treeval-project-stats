@@ -86,5 +86,5 @@ TreeVal_run_ilMalNeus2_1_FULL_2023-10-25_18-58-23.txt
 ```
 
 TODO:
-- Include options to add the co2footprint data to the information. Must be optional as not everyone will run it.
+- Make TreeValProject.Summary input data optional
 - Output graphs summarising the stats. (Done for 80% of mem cases, issues with subworkflows inside subworkflows)

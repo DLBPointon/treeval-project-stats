@@ -39,11 +39,19 @@ class Co2Parser:
 
 
     def get_co2_columns(self) -> list:
+        """
+        Return the original headers of the co2 file.
+        """
         raw_names = self._file_data[0].split('\t')
         return [ i if not i.endswith('\n') else i.split('\n')[0] for i in raw_names ]
 
 
     def process_co2_line(self, line: list) -> list:
+        """
+        Return a list formatted line for line in co2 file.
+        Time is converted to dict of total h, total m, total s/
+        CO2e and Energy usage are converted to mg and mWh
+        """
         return [    ':'.join(line[1].split(' ')[0].split(':')[2:]), # PROCESS NAMES
                     normalise_values(self, line[3]),                # ENERGY USAGE
                     normalise_values(self, line[4]),                # CO2e
@@ -54,6 +62,10 @@ class Co2Parser:
 
 
     def condense_data(self) -> dict:
+        """
+        Collapse cases where a process is run multiple times, in cases of horizontal scaling.
+        It creates a nested list containing the data from multiple process runs.
+        """
         condensed_data = {}
         for line in self._file_data[1:]:
             line_list = line.split('\t')
@@ -77,6 +89,9 @@ class Co2Parser:
 
 
     def collapse_nested_lists(data: dict) -> dict:
+        """
+        Collapse the nested lists from condense_data
+        """
         corrected = {}
         for x, y in data.items():
             corrected[x] = {
@@ -90,6 +105,9 @@ class Co2Parser:
 
 
     def condense_per_sworkflow (self) -> dict:
+        """
+        Collapse data down to the subworkflow level rather than module.
+        """
         condensed_data = {}
         for x, y in self._processed_data.items():
             hierarchy = x.split(':')
@@ -119,6 +137,9 @@ class Co2Parser:
 
 
     def average_subworkflow_dict(self) -> dict:
+        """
+        Create a dictionary of averaged data per subworkflow
+        """
         data = Co2Parser.condense_per_sworkflow(self)
         average_dict = {}
 
@@ -134,6 +155,9 @@ class Co2Parser:
 
 
     def max_subworkflow_dict(self) -> dict:
+        """
+        Create a dictionary of the maximal value for each category
+        """
         data = Co2Parser.condense_per_sworkflow(self)
         max_dict = {}
 
@@ -149,6 +173,9 @@ class Co2Parser:
 
 
     def total_subworkflow_dict(self) -> dict:
+        """
+        Create a dictionary of the total value per category
+        """
         data = Co2Parser.condense_per_sworkflow(self)
         total_dict = {}
 
@@ -165,6 +192,9 @@ class Co2Parser:
 
     # NEEDS CACHING OF SOME SORT AS IT WILL BE REFEREED TO THRICE!
     def all_data_dict(data: dict) -> dict:
+        """
+        Creates a dictionary of all raw data
+        """
         the_all_dict = {}
 
         for x, y in data.items():
@@ -183,6 +213,9 @@ class Co2Parser:
 
 
     def calc_average(data: list) -> int:
+        """
+        Calculate the average value of the input list
+        """
         return round(int(sum(data) / len(data)), 2)
 
     # THE BELOW 3 FUNCTIONS COULD BE SIMPLIFIED WITH

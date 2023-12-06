@@ -52,3 +52,6 @@ class RunParser:
         [txt.write(f"\t {a} = '{v}' \n") for a, v in self.collection if a not in ['block', 'collection', 'contents']]
         txt.write(")")
         return txt.getvalue()
+
+
+    def update_dicts

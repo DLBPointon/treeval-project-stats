@@ -5,33 +5,12 @@ import sys
 from master_list import master_list
 from general_functions import normalise_values, fix_time
 
-
-class TooManyProcesses(Exception):
-    """
-    Exception raised if the processes in the TreeVal execution log, exceed those expected.
-
-    Attributes:
-        process -- unexpected process
-        message -- explanation of the error
-    """
-
-    def __init__(self, process, master):
-        self._process = process
-        self._master_list = master
-        self._message = TooManyProcesses.message(self)
-        super().__init__(self.message)
-
-    def message(self):
-        error_message = ''.join([i + '\n' for i in self._master_list])
-        error = f"Process ({self._process}) not found in master process list. Have you modified the pipeline?\nMaster list:\n {error_message}"
-        return error
-
-
 class ParseRunExecution:
     def __init__(self, block,):
 
         self.condensed, self.efficiency     = ParseRunExecution.condense(self, block)
         self.list_of_list, self.headers     = ParseRunExecution.dict_to_list(self.condensed)
+        self.master_dict                    = ParseRunExecution.generate_master_dict(self.condensed)
         self.collection                     = ParseRunExecution.__iter__(self)
 
 
@@ -78,7 +57,7 @@ class ParseRunExecution:
             for sub_list in y:
                 cpu_request.append(int(sub_list[0]))                                # cpu request by user
                 mem_request.append(normalise_values(self, sub_list[1]))             # mem request by user
-                cpu_usage.append(math.ceil(float(sub_list[4].split('%')[0]) / 100)) # number of cores used = roundup(CPU_percent  / 100)
+                cpu_usage.append(math.ceil(float(sub_list[4].split('%')[0]) / 100)) # number of cores used = roundup(CPU_percent  / 100) as it is 100 per core
                 mem_usage.append(normalise_values(self, sub_list[-1].strip()))      # Using peak mem reported by process
 
         return { 'MEM_EFFICIENCY' : {
@@ -95,19 +74,19 @@ class ParseRunExecution:
 
 
     def condense(self, data: list):
-        processes = ParseRunExecution.get_unique_processes(data)
-        data_per_process = ParseRunExecution.collect_per_process(data, processes)
-        efficiency_dict = ParseRunExecution.efficiency_calculator(self, data_per_process)
-        condensed = ParseRunExecution.condense_data(self, data_per_process)
-        process_correction = ParseRunExecution.compare_to_masterlist(self, condensed)
+        processes           = ParseRunExecution.get_unique_processes(data)
+        data_per_process    = ParseRunExecution.collect_per_process(data, processes)
+        efficiency_dict     = ParseRunExecution.efficiency_calculator(self, data_per_process)
+        condensed           = ParseRunExecution.condense_data(self, data_per_process)
+        process_correction  = ParseRunExecution.compare_to_masterlist(self, condensed)
         condensed.update(process_correction)
-        sorted_dict = dict(sorted(condensed.items())) # Alphabetically sort the keys, means all iterations should have same order
+        sorted_dict         = dict(sorted(condensed.items())) # Alphabetically sort the keys, means all iterations should have same order
         return sorted_dict, efficiency_dict
 
 
     def get_unique_processes(data: list) -> list:
         """
-        Return unique list of processes in execution lo
+        Return unique list of processes in execution log
         """
         return list(set([i.split(' ')[0] for i in data]))
 
@@ -160,14 +139,14 @@ class ParseRunExecution:
                 mem_percent = []
                 peak_mem = []
                 for i in data_lists:
-                    cpus.append(int(i[0]))                                                      # '16'         - REQUESTED CPU
+                    cpus.append(int(i[0]))                                          # '16'         - REQUESTED CPU
                     memory.append(normalise_values(self, i[1]))                     # '130 GB'     - REQUESTED MEM
                     realtime.append(
-                        fix_time(i[3].split(' '))                             # '29m 33s'    - REALTIME EXECUTION TIME
+                        fix_time(i[3].split(' '))                                   # '29m 33s'    - REALTIME EXECUTION TIME
                     )
-                    cpu_percent.append(int(float(i[4].split('%')[0])))                          # '1441.5%'    - CPU UTILISATION PERCENTAGE
-                    mem_percent.append(int(float(i[5].split('%')[0])))                          # '6.5%'       - MEM UTILISATION PERCENTAGE
-                    peak_mem.append(normalise_values(self, i[6].split('\\')[0]))    # '25.8 GB\n'  - REPORTED PEAK MEMORY | NOW PERCENTAGE OF REQUESTED MEM
+                    cpu_percent.append(int(float(i[4].split('%')[0])))              # '1441.5%'    - CPU UTILISATION PERCENTAGE
+                    mem_percent.append(int(float(i[5].split('%')[0])))              # '6.5%'       - MEM UTILISATION PERCENTAGE
+                    peak_mem.append(normalise_values(self, i[6].split('\\')[0]))    # '25.8 GB\n'  - REPORTED PEAK MEMORY for PERCENTAGE OF REQUESTED MEM
                 avg_cpu = sum(cpus) / len(cpus)
                 avg_mem = int(sum(memory) / len(memory))
                 tot_mem = int(sum(memory))
@@ -186,6 +165,11 @@ class ParseRunExecution:
                                             tot_peak
                                             ]
         return condensed_data
+
+
+    def generate_master_dict(data_dict: dict) -> list:
+        master_dict = {}
+        pass
 
 
     def compare_to_masterlist(self, data_dict: dict) -> dict:

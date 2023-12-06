@@ -7,10 +7,9 @@ def get_contents(self) -> list:
 
 def normalise_values(self, item: str) -> float:
     """
-    normalise co2e and Watt Hour data into miligrams of Co2 or mili Watt hours
+    normalise co2e into miligrams
+    normalise Watt Hour data into mili Watt hours
     normalise memory values into MB
-
-    match case only runs on python3.10
     """
     item_data = item.split(' ')
     match item_data[-1].strip():
@@ -31,13 +30,14 @@ def normalise_values(self, item: str) -> float:
                 #"Zero value with no suffix! Happens when process so short lived that resources can't be polled, but I can deal with it"
                 return int(item_data[0])
             else:
-                sys.exit(f"Incorrect value ({item}), where's it's suffix!")
+                sys.exit(f"Incorrect value ({item}), it's not 0 and there's no suffix!")
 
 
 def fix_time(time_list: list) -> dict:
     """
     Fix all of time!
-    Calculate the total runtime in h, m and s
+    Calculate the total runtime in h, m and s using the time taken per process
+    Time taken over pipeline includes wait time on local HPC
     """
     total = 0
     time_dict = {}
@@ -49,12 +49,12 @@ def fix_time(time_list: list) -> dict:
                 total += int(i.split('d')[0]) * 86400        # number of days * seconds in day
             elif i.endswith('h'):
                 total += (int(i.split('h')[0]) * 60) * 60    # number of hours * minutes in hour * seconds in minute
+            elif i.endswith('ms'):
+                total += int(float(i.split('ms')[0])) / 1000 # divide ms by 1000 to convert milliseconds to seconds
             elif i.endswith('m'):
                 total += int(i.split('m')[0]) * 60           # number of minutes * seconds in minute
             elif i.endswith('s'):
                 total += int(float(i.split('s')[0]))         # nothing.. it's already in seconds
-            elif i.endswith('ms'):
-                total += int(float(i.split('ms')[0])) / 1000 # divide ms by 1000 to convert milliseconds to seconds
             else:
                 total = int(float(i))                        # nothing.. means its the newer formats which are already converted
         time_dict['s'] = total
