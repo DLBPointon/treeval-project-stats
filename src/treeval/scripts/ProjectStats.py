@@ -446,6 +446,7 @@ def main():
     efficiency_data = {}
 
     for file in os.listdir(options.DIR):
+        #pathlib
         if os.stat(options.DIR + file).st_size == 0:
             empty_files.append(file)
             pass

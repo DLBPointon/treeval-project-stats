@@ -7,15 +7,15 @@ class Co2Parser:
     def __init__ (self, file: str):
         self.file = file
         self._file_data         = get_contents(self)
-        self._processed_data    = Co2Parser.condense_data(self)
-        self.original_headers   = Co2Parser.get_co2_columns(self)
-        self.max_data           = Co2Parser.max_data_dict(self)
-        self.total_data         = Co2Parser.total_data_dict(self)
-        self.average_data       = Co2Parser.average_data_dict(self)
-        self.max_sworkflow      = Co2Parser.max_subworkflow_dict(self)
-        self.total_sworkflow    = Co2Parser.total_subworkflow_dict(self)
-        self.average_sworkflow  = Co2Parser.average_subworkflow_dict(self)
-        self.collection         = Co2Parser.__iter__(self)
+        self._processed_data    = self.condense_data()
+        self.original_headers   = self.get_co2_columns()
+        self.max_data           = self.max_data_dict()
+        self.total_data         = self.total_data_dict()
+        self.average_data       = self.average_data_dict() # rename property to method name
+        self.max_sworkflow      = self.max_subworkflow_dict()
+        self.total_sworkflow    = self.total_subworkflow_dict()
+        self.average_sworkflow  = self.average_subworkflow_dict()
+        self.collection         = self.__iter__()
 
 
     def __iter__(self):
@@ -69,7 +69,7 @@ class Co2Parser:
         condensed_data = {}
         for line in self._file_data[1:]:
             line_list = line.split('\t')
-            line_processed = Co2Parser.process_co2_line(self, line_list)
+            line_processed = self.process_co2_line(self, line_list)
             if line_processed[1] != None and line_processed[5] != 'FAILED':
                 if not line_processed[0] in condensed_data.keys():
                     condensed_data[line_processed[0]] = {
@@ -133,23 +133,23 @@ class Co2Parser:
                 condensed_data[subworkflow]["SUB_CO2e"].append(y['CO2e']),
                 condensed_data[subworkflow]["SUB_TIME"].append(y['TIME']),
                 condensed_data[subworkflow]["SUB_CPUS"].append(y['CPUS'])
-        return Co2Parser.collapse_nested_lists(condensed_data)
+        return self.collapse_nested_lists(condensed_data)
 
 
     def average_subworkflow_dict(self) -> dict:
         """
         Create a dictionary of averaged data per subworkflow
         """
-        data = Co2Parser.condense_per_sworkflow(self)
+        data = self.condense_per_sworkflow(self)
         average_dict = {}
 
         for x, y in data.items():
             time_list = [ x['s'] for x in y['SUB_TIME']]
             average_dict[x] = { "COLLECTS"  : y['COLLECTS'],
-                                "AVG_ENERGY": Co2Parser.calc_average(y['SUB_ENERGY']),
-                                "AVG_CO2e"  : Co2Parser.calc_average(y['SUB_CO2e']),
-                                "AVG_CPUS"  : Co2Parser.calc_average(y['SUB_CPUS']),
-                                "AVG_TIME"  : fix_time([Co2Parser.calc_average(time_list)])
+                                "AVG_ENERGY": self.calc_average(y['SUB_ENERGY']),
+                                "AVG_CO2e"  : self.calc_average(y['SUB_CO2e']),
+                                "AVG_CPUS"  : self.calc_average(y['SUB_CPUS']),
+                                "AVG_TIME"  : fix_time([self.calc_average(time_list)])
                                 }
         return average_dict
 
@@ -158,7 +158,7 @@ class Co2Parser:
         """
         Create a dictionary of the maximal value for each category
         """
-        data = Co2Parser.condense_per_sworkflow(self)
+        data = self.condense_per_sworkflow(self)
         max_dict = {}
 
         for x, y in data.items():
@@ -176,7 +176,7 @@ class Co2Parser:
         """
         Create a dictionary of the total value per category
         """
-        data = Co2Parser.condense_per_sworkflow(self)
+        data = self.condense_per_sworkflow(self)
         total_dict = {}
 
         for x, y in data.items():
@@ -220,16 +220,16 @@ class Co2Parser:
 
     # THE BELOW 3 FUNCTIONS COULD BE SIMPLIFIED WITH
     # ONE OF THOSE WRAPPERS THAT TAKE A FUNC AS INPUT
-    # GENERATE_DICTS( self, [Co2Parser.calc_average, max, sum]) -> AVG, MAX, TOT
+    # GENERATE_DICTS( self, [self.calc_average, max, sum]) -> AVG, MAX, TOT
 
     def average_data_dict (self) -> dict:
         average_dict = {}
 
-        for x, y in Co2Parser.all_data_dict(self._processed_data).items():
-            average_dict[x] = { "AVG_ENERGY": Co2Parser.calc_average(y['ALL_ENERGY']),
-                                "AVG_CO2e"  : Co2Parser.calc_average(y['ALL_CO2e']),
-                                "AVG_CPUS"  : Co2Parser.calc_average(y['ALL_CPUS']),
-                                "AVG_TIME"  : fix_time([Co2Parser.calc_average(y['ALL_TIME'])])
+        for x, y in self.all_data_dict(self._processed_data).items():
+            average_dict[x] = { "AVG_ENERGY": self.calc_average(y['ALL_ENERGY']),
+                                "AVG_CO2e"  : self.calc_average(y['ALL_CO2e']),
+                                "AVG_CPUS"  : self.calc_average(y['ALL_CPUS']),
+                                "AVG_TIME"  : fix_time([self.calc_average(y['ALL_TIME'])])
                                 }
 
         return average_dict
@@ -238,7 +238,7 @@ class Co2Parser:
     def total_data_dict (self) -> dict:
         total_dict = {}
 
-        for x, y in Co2Parser.all_data_dict(self._processed_data).items():
+        for x, y in self.all_data_dict(self._processed_data).items():
             total_dict[x] = {   "TOT_ENERGY": sum(y['ALL_ENERGY']),
                                 "TOT_CO2e"  : sum(y['ALL_CO2e']),
                                 "TOT_CPUS"  : sum(y['ALL_CPUS']),
@@ -251,7 +251,7 @@ class Co2Parser:
     def max_data_dict (self) -> dict:
         max_dict = {}
 
-        for x, y in Co2Parser.all_data_dict(self._processed_data).items():
+        for x, y in self.all_data_dict(self._processed_data).items():
             max_dict[x] = {   "MAX_ENERGY"  : max(y['ALL_ENERGY']),
                                 "MAX_CO2e"  : max(y['ALL_CO2e']),
                                 "MAX_CPUS"  : max(y['ALL_CPUS']),

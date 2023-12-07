@@ -36,11 +36,10 @@ def normalise_values(self, item: str) -> float:
 def fix_time(time_list: list) -> dict:
     """
     Fix all of time!
-    Calculate the total runtime in h, m and s using the time taken per process
+    Calculate the total runtime in seconds when given time per
     Time taken over pipeline includes wait time on local HPC
     """
     total = 0
-    time_dict = {}
     if time_list[0] == "CANNOT":
         total = -1
     else:
@@ -57,7 +56,4 @@ def fix_time(time_list: list) -> dict:
                 total += int(float(i.split('s')[0]))         # nothing.. it's already in seconds
             else:
                 total = int(float(i))                        # nothing.. means its the newer formats which are already converted
-        time_dict['s'] = total
-        time_dict['m'] = round(total / 60, 2)
-        time_dict['h'] = round(( total / 60 ) / 60, 2)
-    return time_dict
+    return total
