@@ -3,7 +3,7 @@ import io
 class ParseCo2Data:
 
     def __init__(self, contents: list) -> None:
-        self.headers    = contents
+        self.headers        = contents
 
         self.collection     = self.__iter__()
 

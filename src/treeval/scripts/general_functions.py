@@ -5,6 +5,16 @@ def get_contents(self) -> list:
         return datafile.readlines()
 
 
+def reorder(df, new_position, col_name):
+    """
+    Taken from SO, reorder polars df
+    """
+    neworder=df.columns
+    neworder.remove(col_name)
+    neworder.insert(new_position,col_name)
+    return df.select(neworder)
+
+
 def normalise_values(self, item: str) -> float:
     """
     normalise co2e into miligrams
@@ -36,7 +46,7 @@ def normalise_values(self, item: str) -> float:
 def fix_time(time_list: list) -> dict:
     """
     Fix all of time!
-    Calculate the total runtime in seconds when given time per
+    Calculate the total runtime in seconds when given time
     Time taken over pipeline includes wait time on local HPC
     """
     total = 0

@@ -4,7 +4,6 @@ from general_functions import fix_time
 class ParseRunData:
 
     def __init__(self, contents: list):
-        print(contents)
         self.pipeline_version   = self.pipeline_data([i for i in contents if i.startswith("Pipeline_version")])
         self.run_name           = self.pipeline_data([i for i in contents if i.startswith("Pipeline_runname")])
         self.run_id             = self.pipeline_data([i for i in contents if i.startswith("Pipeline_session")])
