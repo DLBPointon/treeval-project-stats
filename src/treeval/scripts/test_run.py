@@ -21,7 +21,7 @@ for file in os.listdir(folder):
     base_df.append(data.execution.data_frame)
 
 
-pl.concat(base_df)
+new_df = pl.concat(base_df)
 
 all = ExecutionCondenser(new_df)
 print(all.condenser('total'))
