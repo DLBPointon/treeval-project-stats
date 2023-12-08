@@ -20,8 +20,8 @@ for file in os.listdir(folder):
 
     base_df.append(data.execution.data_frame)
 
-for i in base_df[1:]:
-    new_df = base_df[0].vstack(i)
+
+pl.concat(base_df)
 
 all = ExecutionCondenser(new_df)
 print(all.condenser('total'))
