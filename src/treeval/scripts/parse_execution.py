@@ -11,8 +11,9 @@ class ParseExecution:
     Parses and formats the execution log data into a usable format.
     """
 
-    def __init__(self, contents: list):
-        self.headers                            = contents[0].strip().split('\t')
+    def __init__(self, contents: list, file: str):
+        # DEBUG FOR ORIGINAL FILE HEADERS = contents[0].strip().split('\t')
+        self.file                               = file
         data_frame                              = self.generate_dataframe(contents)
         self.classification, master_list        = self.classify_data(data_frame)
         corrected_data_frame                    = self.correct_dataframe_names(data_frame, master_list)
@@ -47,7 +48,6 @@ class ParseExecution:
         """
         Currently the data in the frame is all string, this needs correcting so it is usable.
         """
-
         if data[0] == 'name' and data[-1] == 'peak_rss\n':
             data[3]     = 'cpus_requested'
             data[4]     = 'memory_requested_mb'
@@ -57,6 +57,7 @@ class ParseExecution:
             data[-1]    = 'peak_memory_mb'
             data.append( 'cpu_used' )
             data.append( 'average_memory_used_as_mb' )
+            data.append( 'peak_memory_as_percentage')
 
         else:
             data[3]     = int(data[3])
@@ -66,20 +67,20 @@ class ParseExecution:
             data[7]     = int(float(data[7].split('%')[0]))
             data[8]     = int(float(data[8].split('%')[0]))
             data[9]     = normalise_values(self, data[9])
-            data.append( math.ceil(float(data[7]) / 100) ) # Calculate number of core used (rounded up to whole number as you can't request a fraction of a core)
-            data.append( (data[4] / 100) * data[8]) # Calculate the actual memory used by process in MB
+            data.append( math.ceil(float(data[7]) / 100) )  # Calculate number of core used (rounded up to whole number as you can't request a fraction of a core)
+            data.append( (data[4] / 100) * data[8])         # Calculate the actual memory used by process in MB
+            data.append( (data[9] / data[4] * 100 ) )      # Peak mem percentage of request
 
         return data
 
 
     def convert_list_to_dict(self, lol: list) -> dict:
         big_dict = {}
-
         for i in lol[0]:
             list_index = lol[0].index(i)
             big_dict[lol[0][list_index]] = [i[list_index] for i in lol[1:]]
-
         return big_dict
+
 
     def generate_dataframe(self, data: list) -> pl.DataFrame:
         """
@@ -89,8 +90,7 @@ class ParseExecution:
 
         split_data = [i.split('\t') for i in data]
 
-        corrected_dtypes = [self.correct_datatypes(i) for i in split_data]
-
+        corrected_dtypes = [self.correct_datatypes(i) for i in split_data if not 'FAILED' in i]
         list_to_dict = self.convert_list_to_dict(corrected_dtypes)
 
         trans_df = pl.DataFrame(list_to_dict)
@@ -145,7 +145,7 @@ class ParseExecution:
         elif len(smallest_process) >= 4 and not 'NFCORE' in smallest_process[1]:
             classify = ['CUSTOM', f'ENTRY POINTS="{base}"']
         else:
-            sys.exit('WHAT DO PAPA?')
+            sys.exit('WHAT DO?')
 
         return classify, self.remove_common_string(smallest_process, split_processes, process_count)
 
@@ -154,8 +154,8 @@ class ParseExecution:
         """
         Create a mapping of old and new names for col_0
         """
-        rename_dict = dict(zip(df.get_column(name='name1'), new_names))                                 # Generate key:value mapping of row names that need replacing
-        new_df = df.with_columns(pl.col('name1').replace(rename_dict).alias('updated_names'))           # Replaces values with a processed list that removed the common prefixes
+        rename_dict = dict(zip(df.get_column(name='name1'), new_names))                            # Generate key:value mapping of row names that need replacing
+        new_df = df.with_columns(pl.col('name1').replace(rename_dict).alias('updated_names'))      # Replaces values with a processed list that removed the common prefixes
         return reorder(new_df.drop('name1'), 0, 'updated_names').rename({'updated_names':'names'}) # Reorder columns and rename col_0 back to names
 
 

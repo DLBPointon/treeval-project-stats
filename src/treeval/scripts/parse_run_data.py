@@ -1,4 +1,5 @@
 import io
+import re
 from general_functions import fix_time
 
 class ParseRunData:

@@ -1,7 +1,7 @@
 import sys
 
 def get_contents(self) -> list:
-    with open (self.file) as datafile:
+    with open (self.file, 'r') as datafile:
         return datafile.readlines()
 
 
@@ -15,6 +15,8 @@ def reorder(df, new_position, col_name):
     return df.select(neworder)
 
 
+# TODO: Mem calculation is wrong:
+# https://www.nextflow.io/docs/latest/metrics.html#memory-usage
 def normalise_values(self, item: str) -> float:
     """
     normalise co2e into miligrams
@@ -40,6 +42,7 @@ def normalise_values(self, item: str) -> float:
                 #"Zero value with no suffix! Happens when process so short lived that resources can't be polled, but I can deal with it"
                 return int(item_data[0])
             else:
+                print(item_data)
                 sys.exit(f"Incorrect value ({item}), it's not 0 and there's no suffix!")
 
 

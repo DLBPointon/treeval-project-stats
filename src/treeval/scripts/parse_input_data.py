@@ -8,10 +8,12 @@ class ParseInputData:
     def __init__(self, contents: list) -> None:
         sample                  = contents[0].split(' ')[-1].strip()
         self.sample             = re.sub("[^a-zA-Z0-9_]", "", sample) # Remove the [ ] that occur in some cases
+        self.get_tol_prefix
+        self.genome_size        = self.fix_data([i for i in contents if i.startswith('InputAssemblyData')])
         self.pacbio_data        = self.fix_data([i for i in contents if i.startswith('Input_PacBio_Files')])
         self.cram_data          = self.fix_data([i for i in contents if i.startswith('Input_Cram_Files')])
 
-        self.collection     = self.__iter__()
+        self.collection         = self.__iter__()
 
 
     def __iter__(self):
@@ -43,7 +45,7 @@ class ParseInputData:
         if cn_count == None:
             cn_count = np.nan
         else:
-            cn_count = cn_count.group(1)
+            cn_count = float(cn_count.group(1))
 
         sz = re.search(r"sz:([0-9]*)", first_list)
         if sz.group(1):
@@ -57,7 +59,16 @@ class ParseInputData:
 
         return {'id': data_type,
                 'file_size_list': file_size_list,
-                'file_size_total': sum(file_size_list),
+                'file_size_total': int(sum(file_size_list)),
                 'file_count': len(file_size_list),
                 'containers': cn_count
                 }
+
+
+    @property
+    def get_tol_prefix(self) -> str:
+        suffix = re.match(r'^[a-z]*', self.sample)
+        if suffix:
+            return suffix.group()
+        else:
+            return 'unknown'
