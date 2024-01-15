@@ -3,7 +3,7 @@ import polars as pl
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-from graphing import graph_cpu_vs_process, graph_process_vs_peak, graph_process_vs_peak_log, graph_peak_vs_clade#, per_process_avg_boxplots
+from graphing import graph_cpu_vs_process, graph_process_vs_peak, graph_process_vs_peak_log, graph_peak_vs_clade, graph_per_workflow
 from parse_run import RunParser
 from condense_data import ExecutionCondenser
 
@@ -61,6 +61,9 @@ if tv_counter == len(all_data):
     total_value_df = pl.concat(
         [i.condenser(df = 'avg', extended=True) for i in condensed_data]
     )
+    unique_names = total_value_df.get_column('names').to_list()
+    workflow_names = list(set([i.split(':')[0] for i in unique_names]))
+    graph_per_workflow(total_value_df, workflow_names)
 
     #
     # Super condense allows us to generate the pipeline wide graphs like we do with non-contexted data
@@ -79,8 +82,9 @@ else:
     print(total_value_df) """
 
 unique_names = total_value_df.get_column('names').to_list()
-print(unique_names)
+workflow_names = list(set([i.split(':')[0] for i in unique_names]))
+print(workflow_names)
 
-graph_process_vs_peak(total_value_df)
-graph_per_workflow(total_value_df)
-graph_process_vs_peak_log(total_value_df)
+#graph_process_vs_peak(total_value_df)
+#graph_per_workflow(total_value_df, workflow_names)
+#graph_process_vs_peak_log(total_value_df)
