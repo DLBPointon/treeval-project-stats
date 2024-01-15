@@ -196,12 +196,21 @@ def graph_per_workflow( data_df: pl.DataFrame , names: list):
                 )
         )
 
+
         # now for the actual box plt
         print(list(df_by_process.columns))
-        sns.boxplot(
+        fig = sns.boxplot(
             data=df_by_process,
             x='corrected_final',
-            y='average_memory_used_as_mb'
+            y='average_memory_used_as_percentage',
+            hue = 'peak_memory_as_percentage'
+            log_scale = False
         )
-        plt.savefig(f"demo_{i}.png")
+
+        ax2 = plt.twinx()
+
+
+
+
+        plt.savefig(fig, f"demo_{i}.png")
         plt.clf()
