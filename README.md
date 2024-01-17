@@ -5,6 +5,7 @@ For the TreeVal project, we have included a TreeValProject.summary function in g
 The scripts contained in this repo `src/` aim to pull actionable data from these files.
 
 ## Requirements
+
 Requirements can be seen in the requirements.txt file found in this folder.
 
 These can be installed with:
@@ -20,16 +21,19 @@ You can deactivate the environment with a simple
 ```
 deactivate
 ```
+
 and reactivate with the `source` command used above.
 
 ## Run the script
 
 Run the script with:
+
 ```
 python3 src/treeval/scripts/ProjectStats.py {PATH TO SUMMARY DIRECTORY}
 ```
 
 Current Example:
+
 ```
 python3 src/treeval/scripts/ProjectStats.py ./treeval-summary-files/1-1-0/
 
@@ -37,6 +41,7 @@ python3 src/treeval/scripts/ProjectStats.py /lustre/scratch123/tol/resources/tre
 ```
 
 ## Example
+
 ```
 --------------------------------------------------
  TreeValProject.Summary Stats!
@@ -86,5 +91,6 @@ TreeVal_run_ilMalNeus2_1_FULL_2023-10-25_18-58-23.txt
 ```
 
 TODO:
+
 - Make TreeValProject.Summary input data optional
 - Output graphs summarising the stats. (Done for 80% of mem cases, issues with subworkflows inside subworkflows)
