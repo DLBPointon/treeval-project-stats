@@ -3,236 +3,209 @@ import matplotlib.pyplot as plt
 import polars as pl
 import polars.selectors as cs
 
-def graph_cpu_vs_process( data_df: pl.DataFrame):
-    print('Graph1')
-    sns.set(rc = {'figure.figsize':(25,25)})
-    fig = sns.lineplot(
-        data_df,
-        x='names',
-        y='cpus_requested'
-    )
-    fig.set(
-        title='Process vs. CPUs requested'
-    )
+
+def graph_cpu_vs_process(data_df: pl.DataFrame):
+    print("Graph1")
+    sns.set(rc={"figure.figsize": (25, 25)})
+    fig = sns.lineplot(data_df, x="names", y="cpus_requested")
+    fig.set(title="Process vs. CPUs requested")
 
     ax2 = plt.twinx()
 
-    sns.scatterplot(data_df['cpu_used'], color='red', ax=ax2, legend=False)
+    sns.scatterplot(data_df["cpu_used"], color="red", ax=ax2, legend=False)
 
     box = fig.get_figure()
 
-    fig.set_xticks(data_df['names'].to_list())
-    fig.set_xticklabels(data_df['names'].to_list(), rotation=90, fontsize=6)
+    fig.set_xticks(data_df["names"].to_list())
+    fig.set_xticklabels(data_df["names"].to_list(), rotation=90, fontsize=6)
 
-    box.savefig('test.png')
+    box.savefig("test.png")
     plt.clf()
 
 
 def graph_process_vs_peak_log(data_df: pl.DataFrame):
-    print('test2.png : log scale')
-    sns.set(rc = {'figure.figsize':(25,25)})
-    new_data = data_df.with_columns((pl.col('memory_requested_mb').log(base=2)).alias('mem_req_mb_log'))
-
-    fig = sns.lineplot(
-        new_data,
-        x='names',
-        y='mem_req_mb_log'
-    )
-    fig.set(
-        title='Process vs. Memory'
+    print("test2.png : log scale")
+    sns.set(rc={"figure.figsize": (25, 25)})
+    new_data = data_df.with_columns(
+        (pl.col("memory_requested_mb").log(base=2)).alias("mem_req_mb_log")
     )
 
-    fig.set_xticks(data_df['names'])
+    fig = sns.lineplot(new_data, x="names", y="mem_req_mb_log")
+    fig.set(title="Process vs. Memory")
 
-    fig.set_xticklabels(data_df['names'].to_list(), rotation=90, fontsize=6)
-    fig.set_ylim(0, new_data['mem_req_mb_log'].max()+1)
+    fig.set_xticks(data_df["names"])
+
+    fig.set_xticklabels(data_df["names"].to_list(), rotation=90, fontsize=6)
+    fig.set_ylim(0, new_data["mem_req_mb_log"].max() + 1)
 
     ax2 = plt.twinx()
-    ax2.set_ylim(0, new_data['mem_req_mb_log'].max()+1)
+    ax2.set_ylim(0, new_data["mem_req_mb_log"].max() + 1)
 
-    sns.scatterplot(new_data['peak_memory_mb'].log(base=2), color='red', ax=ax2, legend=False)
+    sns.scatterplot(
+        new_data["peak_memory_mb"].log(base=2), color="red", ax=ax2, legend=False
+    )
 
     box = fig.get_figure()
 
-    box.savefig('test2_log.png')
+    box.savefig("test2_log.png")
     plt.clf()
+
 
 def graph_process_vs_peak(data_df: pl.DataFrame):
-    print('Graph2')
-    sns.set(rc = {'figure.figsize':(25,25)})
-    fig = sns.lineplot(
-        data_df,
-        x='names',
-        y='memory_requested_mb'
-    )
-    fig.set(
-        title='Process vs. Memory'
-    )
+    print("Graph2")
+    sns.set(rc={"figure.figsize": (25, 25)})
+    fig = sns.lineplot(data_df, x="names", y="memory_requested_mb")
+    fig.set(title="Process vs. Memory")
 
-    fig.set_xticks(data_df['names'])
+    fig.set_xticks(data_df["names"])
 
-    fig.set_xticklabels(data_df['names'].to_list(), rotation=90, fontsize=6)
-    fig.set_ylim(0, data_df['memory_requested_mb'].max()+1000)
+    fig.set_xticklabels(data_df["names"].to_list(), rotation=90, fontsize=6)
+    fig.set_ylim(0, data_df["memory_requested_mb"].max() + 1000)
 
     ax2 = plt.twinx()
-    ax2.set_ylim(0, data_df['memory_requested_mb'].max()+1000)
+    ax2.set_ylim(0, data_df["memory_requested_mb"].max() + 1000)
 
-    sns.scatterplot(data_df['peak_memory_mb'], color='red', ax=ax2, legend=False)
+    sns.scatterplot(data_df["peak_memory_mb"], color="red", ax=ax2, legend=False)
 
     box = fig.get_figure()
 
-    box.savefig('test2.png')
+    box.savefig("test2.png")
     plt.clf()
 
+
 def graph_peak_vs_clade(data_df: pl.DataFrame):
-    print('Graph3')
+    print("Graph3")
     print(data_df.columns)
 
     data2 = data_df.with_columns(
-    [
-        pl.col("names")
-        .str.split_exact(":", 1)
-        .struct.rename_fields(["major_subworkflow", "other"])
-        .alias("fields"),
-    ]
+        [
+            pl.col("names")
+            .str.split_exact(":", 1)
+            .struct.rename_fields(["major_subworkflow", "other"])
+            .alias("fields"),
+        ]
     ).unnest("fields")
 
     unique_subwf = set(data2.get_column("major_subworkflow"))
 
     for i in unique_subwf:
-        if i != 'CUSTOM_DUMPSOFTWAREVERSIONS':
+        if i != "CUSTOM_DUMPSOFTWAREVERSIONS":
             fig, axes = plt.subplots(1, 2, figsize=(24, 12))
 
-            data3 = data2.filter((pl.col('major_subworkflow') == i))
+            data3 = data2.filter((pl.col("major_subworkflow") == i))
             print(i)
 
-            sns.set(rc = {'figure.figsize':(25,25)})
+            sns.set(rc={"figure.figsize": (25, 25)})
             sns.boxplot(
-                ax = axes[0],
-                data = data3,
-                x='other',
-                y='peak_memory_mb',
+                ax=axes[0],
+                data=data3,
+                x="other",
+                y="peak_memory_mb",
             )
 
-            data4 = data3.unique(['clade', 'unique_name', 'genome_size', 'entry_point', 'pipeline_time', 'pacbio_total', 'pacbio_file_no', 'cram_total', 'cram_file_no', 'cram_containers'])
-
-            sns.scatterplot(
-                ax=axes[1],
-                data = data4,
-                x='unique_name',
-                y='genome_size'
+            data4 = data3.unique(
+                [
+                    "clade",
+                    "unique_name",
+                    "genome_size",
+                    "entry_point",
+                    "pipeline_time",
+                    "pacbio_total",
+                    "pacbio_file_no",
+                    "cram_total",
+                    "cram_file_no",
+                    "cram_containers",
+                ]
             )
 
+            sns.scatterplot(ax=axes[1], data=data4, x="unique_name", y="genome_size")
 
             box = fig.get_figure()
 
-            box.savefig(f'{i}-test-peak-clade.png')
+            box.savefig(f"{i}-test-peak-clade.png")
             plt.clf()
 
 
-def graph_per_workflow( data_df: pl.DataFrame , names: list):
-
+def graph_per_workflow(data_df: pl.DataFrame, names: list):
     # Dataframe containing max
     df_avg_peak = (
-        data_df
-            .select(['names', "peak_memory_as_percentage"])
-            .group_by('names')
-            .max()
+        data_df.select(["names", "peak_memory_as_percentage"]).group_by("names").max()
     )
 
     df_with_workflow = (
         # Adapted from https://stackoverflow.com/questions/73699500/python-polars-split-string-column-into-many-columns-by-delimiter
         # Splits name by ':' to get major subworkflow id (split[0]) to group the dataframe by
-        data_df
-            .with_row_count('id')
-            .with_columns(
-                pl.col("names").str.split(":").alias('workflow_id')
-            )
-            .explode('workflow_id')
-            .with_columns(
-                ("workflow_id_" + pl.arange(0, pl.count()).cast(pl.Utf8).str.zfill(2))
-                .over('id')
-                .alias("placeholder")
-            )
-            .pivot(
-                index=["id", "names"],
-                values="workflow_id",
-                columns="placeholder"
-            )
-            .with_columns(
-                pl.col('^workflow_id_.*$').fill_null("")
-            )
-            .join(data_df, on="names", how="left")
+        data_df.with_row_count("id")
+        .with_columns(pl.col("names").str.split(":").alias("workflow_id"))
+        .explode("workflow_id")
+        .with_columns(
+            ("workflow_id_" + pl.arange(0, pl.count()).cast(pl.Utf8).str.zfill(2))
+            .over("id")
+            .alias("placeholder")
+        )
+        .pivot(index=["id", "names"], values="workflow_id", columns="placeholder")
+        .with_columns(pl.col("^workflow_id_.*$").fill_null(""))
+        .join(data_df, on="names", how="left")
     )
     # Grab the columns containing the workflow name information
-    workflow_cols = [i for i in df_with_workflow.columns if i.startswith("workflow_id_")]
+    workflow_cols = [
+        i for i in df_with_workflow.columns if i.startswith("workflow_id_")
+    ]
 
     # Generate corrected names in each subworkflow upto Workflow - sub - sub - process
     # This should be generated by the class
     for i in names:
-        df_by_process = (
-            df_with_workflow
-                .filter(pl.col("workflow_id_00") == i)
-                .with_columns(
-                    # Workflows shouldn't get more fractal than this...
-                    pl.when(pl.col("desc") == "WSSP")
-                            .then(
-                                pl.concat_str([
-                                    pl.col(workflow_cols[-3]),
-                                    pl.col(workflow_cols[-2]),
-                                    pl.col(workflow_cols[-1])
-                                    ],
-                                    separator=":"
-                                )
-                            )
-                        .when(pl.col("desc") == "WSP")
-                            .then(
-                                pl.concat_str([
-                                    pl.col(workflow_cols[-3]),
-                                    pl.col(workflow_cols[-2])
-                                ],
-                                separator=":"
-                                )
-                            )
-                        .when(pl.col("desc") == "WP")
-                            .then(pl.col(workflow_cols[-3]))
-                        .otherwise(pl.col(workflow_cols[-1]))
-                        .alias('corrected_final')
-
+        df_by_process = df_with_workflow.filter(
+            pl.col("workflow_id_00") == i
+        ).with_columns(
+            # Workflows shouldn't get more fractal than this...
+            pl.when(pl.col("desc") == "WSSP")
+            .then(
+                pl.concat_str(
+                    [
+                        pl.col(workflow_cols[-3]),
+                        pl.col(workflow_cols[-2]),
+                        pl.col(workflow_cols[-1]),
+                    ],
+                    separator=":",
                 )
+            )
+            .when(pl.col("desc") == "WSP")
+            .then(
+                pl.concat_str(
+                    [pl.col(workflow_cols[-3]), pl.col(workflow_cols[-2])],
+                    separator=":",
+                )
+            )
+            .when(pl.col("desc") == "WP")
+            .then(pl.col(workflow_cols[-3]))
+            .otherwise(pl.col(workflow_cols[-1]))
+            .alias("corrected_final")
         )
 
         # merge peak
-        df_peak_names = (
-            df_by_process
-                .select(['names', 'corrected_final'])
-                .join(
-                    other=df_avg_peak,
-                    on='names',
-                    how='left'
-                )
+        df_peak_names = df_by_process.select(["names", "corrected_final"]).join(
+            other=df_avg_peak, on="names", how="left"
         )
 
         # now for the actual box plt
         print(i)
         fig = sns.boxplot(
             data=df_by_process,
-            x='corrected_final',
-            y='average_memory_used_as_percentage',
-            log_scale = False
+            x="corrected_final",
+            y="average_memory_used_as_percentage",
+            log_scale=False,
         )
-        fig.set(ylim=[-1, df_peak_names['peak_memory_as_percentage'].max()])
+        fig.set(ylim=[-1, df_peak_names["peak_memory_as_percentage"].max()])
 
         ax2 = plt.twinx()
-        ax2.set(ylim=[-1, df_peak_names['peak_memory_as_percentage'].max()])
+        ax2.set(ylim=[-1, df_peak_names["peak_memory_as_percentage"].max()])
         sns.scatterplot(
             data=df_peak_names,
-            x='corrected_final',
-            y='peak_memory_as_percentage',
-            ax=ax2
+            x="corrected_final",
+            y="peak_memory_as_percentage",
+            ax=ax2,
         )
-
-
 
         plt.savefig(f"demo_{i}.png")
         plt.clf()

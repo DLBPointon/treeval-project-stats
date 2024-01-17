@@ -1,7 +1,8 @@
 import sys
 
+
 def get_contents(self) -> list:
-    with open (self.file, 'r') as datafile:
+    with open(self.file, "r") as datafile:
         return datafile.readlines()
 
 
@@ -9,9 +10,9 @@ def reorder(df, new_position, col_name):
     """
     Taken from SO, reorder polars df
     """
-    neworder=df.columns
+    neworder = df.columns
     neworder.remove(col_name)
-    neworder.insert(new_position,col_name)
+    neworder.insert(new_position, col_name)
     return df.select(neworder)
 
 
@@ -23,23 +24,25 @@ def normalise_values(self, item: str) -> float:
     normalise Watt Hour data into mili Watt hours
     normalise memory values into MB
     """
-    item_data = item.split(' ')
+    item_data = item.split(" ")
     match item_data[-1].strip():
-        case 'kg' | 'Kg' | 'kWh' | 'KWh' | 'TB':
+        case "kg" | "Kg" | "kWh" | "KWh" | "TB":
             return int(round(float(item_data[0]) * 1000000, 2))
-        case 'g' | 'Wh'| 'GB':
+        case "g" | "Wh" | "GB":
             return int(round(float(item_data[0]) * 1000, 2))
-        case 'mg' | 'mWh' | 'MB':
-            return int(round(float(item_data[0]), 2))           # Because these are what we want everything converted too
-        case 'ug' | 'uWh' | 'KB':
+        case "mg" | "mWh" | "MB":
+            return int(
+                round(float(item_data[0]), 2)
+            )  # Because these are what we want everything converted too
+        case "ug" | "uWh" | "KB":
             return int(round(float(item_data[0]) / 1000, 2))
-        case 'ng' | 'nWh':
+        case "ng" | "nWh":
             return int(round(float(item_data[0]) / 1000000, 2))
-        case 'pg' | 'pWh':
+        case "pg" | "pWh":
             return int(round(float(item_data[0]) / 1000000000, 2))
         case _:
             if int(item_data[0].strip()) == 0:
-                #"Zero value with no suffix! Happens when process so short lived that resources can't be polled, but I can deal with it"
+                # "Zero value with no suffix! Happens when process so short lived that resources can't be polled, but I can deal with it"
                 return int(item_data[0])
             else:
                 print(item_data)
@@ -57,16 +60,26 @@ def fix_time(time_list: list) -> dict:
         total = -1
     else:
         for i in time_list:
-            if i.endswith('d'):
-                total += int(i.split('d')[0]) * 86400        # number of days * seconds in day
-            elif i.endswith('h'):
-                total += (int(i.split('h')[0]) * 60) * 60    # number of hours * minutes in hour * seconds in minute
-            elif i.endswith('ms'):
-                total += int(float(i.split('ms')[0])) / 1000 # divide ms by 1000 to convert milliseconds to seconds
-            elif i.endswith('m'):
-                total += int(i.split('m')[0]) * 60           # number of minutes * seconds in minute
-            elif i.endswith('s'):
-                total += int(float(i.split('s')[0]))         # nothing.. it's already in seconds
+            if i.endswith("d"):
+                total += int(i.split("d")[0]) * 86400  # number of days * seconds in day
+            elif i.endswith("h"):
+                total += (
+                    int(i.split("h")[0]) * 60
+                ) * 60  # number of hours * minutes in hour * seconds in minute
+            elif i.endswith("ms"):
+                total += (
+                    int(float(i.split("ms")[0])) / 1000
+                )  # divide ms by 1000 to convert milliseconds to seconds
+            elif i.endswith("m"):
+                total += (
+                    int(i.split("m")[0]) * 60
+                )  # number of minutes * seconds in minute
+            elif i.endswith("s"):
+                total += int(
+                    float(i.split("s")[0])
+                )  # nothing.. it's already in seconds
             else:
-                total = int(float(i))                        # nothing.. means its the newer formats which are already converted
+                total = int(
+                    float(i)
+                )  # nothing.. means its the newer formats which are already converted
     return total
