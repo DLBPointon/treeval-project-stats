@@ -13,7 +13,7 @@ from graphing import (
 from parse_run import RunParser
 from condense_data import ExecutionCondenser
 
-folder = "../../../treeval-summary-files/1-1-0-runs-5/"
+folder = "/home/runner/work/SummaryStats/SummaryStats/treeval-summary-files/1-1-0-runs-5/"
 # folder = "/nfs/treeoflife-01/teams/tola/users/dp24/SummaryStats/treeval-summary-files/readmapping modified/"
 
 base_df = []
