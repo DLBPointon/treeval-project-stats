@@ -132,6 +132,13 @@ def graph_peak_vs_clade(data_df: pl.DataFrame):
 
 def graph_per_workflow( data_df: pl.DataFrame , names: list):
 
+    # Dataframe containing max
+    df_avg_peak = (
+        data_df
+            .select(['names', "peak_memory_as_percentage"])
+            .group_by('names')
+            .max()
+    )
 
     df_with_workflow = (
         # Adapted from https://stackoverflow.com/questions/73699500/python-polars-split-string-column-into-many-columns-by-delimiter
@@ -157,7 +164,6 @@ def graph_per_workflow( data_df: pl.DataFrame , names: list):
             )
             .join(data_df, on="names", how="left")
     )
-    print(df_with_workflow)
     # Grab the columns containing the workflow name information
     workflow_cols = [i for i in df_with_workflow.columns if i.startswith("workflow_id_")]
 
@@ -196,21 +202,38 @@ def graph_per_workflow( data_df: pl.DataFrame , names: list):
                 )
         )
 
+        # merge peak
+        df_peak_names = (
+            df_by_process
+                .select(['names', 'corrected_final'])
+                .join(
+                    other=df_avg_peak,
+                    on='names',
+                    how='left'
+                )
+        )
 
         # now for the actual box plt
-        print(list(df_by_process.columns))
+        print(i)
         fig = sns.boxplot(
             data=df_by_process,
             x='corrected_final',
             y='average_memory_used_as_percentage',
-            hue = 'peak_memory_as_percentage'
             log_scale = False
         )
+        fig.set(ylim=[-1, df_peak_names['peak_memory_as_percentage'].max()])
 
         ax2 = plt.twinx()
+        ax2.set(ylim=[-1, df_peak_names['peak_memory_as_percentage'].max()])
+        sns.scatterplot(
+            data=df_peak_names,
+            x='corrected_final',
+            y='peak_memory_as_percentage',
+            ax=ax2
+        )
 
 
 
-
-        plt.savefig(fig, f"demo_{i}.png")
+        plt.savefig(f"demo_{i}.png")
         plt.clf()
+    print(list(df_by_process.columns))

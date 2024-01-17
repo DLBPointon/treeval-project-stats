@@ -69,7 +69,7 @@ class ParseExecution:
             data[9]     = normalise_values(self, data[9])
             data.append( math.ceil(float(data[7]) / 100) )  # Calculate number of core used (rounded up to whole number as you can't request a fraction of a core)
             data.append( (data[4] / 100) * data[8])         # Calculate the actual memory used by process in MB
-            data.append( (data[9] / data[4] * 100 ) )      # Peak mem percentage of request
+            data.append( (data[9] / data[4] * 100 ) )       # Peak mem percentage of request
 
         return data
 
