@@ -70,7 +70,7 @@ class RunParser:
         txt.write(")")
         return txt.getvalue()
 
-    def correct_data_casts(self, data: pl.DataFrame) -> pl.DataFrame:
+    def correct_data_casts(self) -> pl.DataFrame:
         """
         Due to the amount of data now being taken in,
         there are times where the casting (data type of the column) not being correct
@@ -79,10 +79,10 @@ class RunParser:
 
         For now this deals with the usually buggy ones.
         """
-        print(data.columns)
-        return data.with_columns(
+        self.execution.data_frame = self.execution.data_frame.with_columns(
             [
-                pl.col("cram_containers").cast(pl.Int32),
+                pl.col("input_genome").cast(pl.Int64),
+                pl.col("cram_containers").cast(pl.Float64),
                 pl.col("cram_file_no").cast(pl.Int32),
                 pl.col("cram_total").cast(pl.Int64),
                 pl.col("pacbio_file_no").cast(pl.Int32),
@@ -90,6 +90,8 @@ class RunParser:
                 pl.col("pacbio_total").cast(pl.Int64),
             ]
         )
+        #print(self.execution.data_frame.dtypes)
+        return self
 
     def inject_context(self):
         """
@@ -104,23 +106,14 @@ class RunParser:
             entry_point=pl.lit(self.run_data.entry_point),
             pipeline_time=pl.lit(self.run_data.pipeline_seconds),
             pacbio_total=pl.lit(
-                self.input_data.pacbio_data.get("file_size_total")
-            ).cast(pl.Int64),
-            pacbio_file_no=pl.lit(self.input_data.pacbio_data.get("file_count")).cast(
-                pl.Int32
-            ),
-            cram_total=pl.lit(self.input_data.cram_data.get("file_size_total")).cast(
-                pl.Int64
-            ),
-            cram_file_no=pl.lit(self.input_data.cram_data.get("file_count")).cast(
-                pl.Int32
-            ),
-            cram_containers=pl.lit(self.input_data.cram_data.get("containers")).cast(
-                pl.Int32
-            ),
+                self.input_data.pacbio_data.get("file_size_total")),
+            pacbio_file_no=pl.lit(self.input_data.pacbio_data.get("file_count")),
+            cram_total=pl.lit(self.input_data.cram_data.get("file_size_total")),
+            cram_file_no=pl.lit(self.input_data.cram_data.get("file_count")),
+            cram_containers=pl.lit(self.input_data.cram_data.get("containers"))
         )
 
-        return self
+        return self.correct_data_casts()
 
     def inject_co2(self):
         pass

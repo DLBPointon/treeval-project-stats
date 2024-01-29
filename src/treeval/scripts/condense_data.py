@@ -78,16 +78,14 @@ class ExecutionCondenser:
                 status=pl.lit(data[2]),
                 clade=pl.lit(data_rear[0]),
                 unique_name=pl.lit(data_rear[1]),
-                genome_size=pl.lit(data_rear[2]),
-                entry_point=pl.lit(data_rear[3]),
-                pipeline_time=pl.lit(data_rear[4]),
-                pacbio_total=pl.lit(data_rear[5]),
-                pacbio_file_no=pl.lit(data_rear[6]),
-                cram_total=pl.lit(data_rear[7]),
-                cram_file_no=pl.lit(data_rear[8]),
-                cram_containers=pl.lit(data_rear[9]).cast(
-                    pl.Int32
-                ),  # Otherwise 0 == NaN
+                genome_size=pl.lit(data_rear[2]).cast(pl.Int64),
+                entry_point=pl.lit(data_rear[3]).cast(pl.Utf8),
+                pipeline_time=pl.lit(data_rear[4]).cast(pl.Int32),
+                pacbio_total=pl.lit(data_rear[5]).cast(pl.Int64),
+                pacbio_file_no=pl.lit(data_rear[6]).cast(pl.Int32),
+                cram_total=pl.lit(data_rear[7]).cast(pl.Int64),
+                cram_file_no=pl.lit(data_rear[8]).cast(pl.Int32),
+                cram_containers=pl.lit(data_rear[9]).cast(pl.Float64)  # Otherwise 0 == NaN
             )
             new_df = reorder(add_context, 0, "names")
             new_list.append(new_df)

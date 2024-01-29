@@ -6,7 +6,7 @@ import numpy as np
 
 
 def graph_cpu_vs_process(data_df: pl.DataFrame):
-    print("Graph1")
+    print("Generating CPU usage vs process", end="\r", flush=True)
     sns.set(rc={"figure.figsize": (25, 25)})
     fig = sns.lineplot(data_df, x="names", y="cpus_requested")
     fig.set(title="Process vs. CPUs requested")
@@ -25,7 +25,7 @@ def graph_cpu_vs_process(data_df: pl.DataFrame):
 
 
 def graph_process_vs_peak_log(data_df: pl.DataFrame):
-    print("test2.png : log scale")
+    print("Generating Process VS Peak memory (LOG scale)", end="\r", flush=True)
     sns.set(rc={"figure.figsize": (25, 25)})
     new_data = data_df.with_columns(
         (pl.col("memory_requested_mb").log(base=2)).alias("mem_req_mb_log")
@@ -53,7 +53,7 @@ def graph_process_vs_peak_log(data_df: pl.DataFrame):
 
 
 def graph_process_vs_peak(data_df: pl.DataFrame):
-    print("Graph2")
+    print("Generating Process VS Peak memory graph", end="\r", flush=True)
     sns.set(rc={"figure.figsize": (25, 25)})
     fig = sns.lineplot(data_df, x="names", y="memory_requested_mb")
     fig.set(title="Process vs. Memory")
@@ -75,7 +75,7 @@ def graph_process_vs_peak(data_df: pl.DataFrame):
 
 
 def graph_peak_vs_clade(data_df: pl.DataFrame):
-    print("Graph3")
+    print("Generating Peak Mem VS Clade graph", end="\r", flush=True)
     print(data_df.columns)
 
     data2 = data_df.with_columns(
@@ -190,7 +190,6 @@ def graph_per_workflow(data_df: pl.DataFrame, names: list, save_name: str):
         )
 
         # now for the actual box plt
-        print(i)
         fig = sns.boxplot(
             data=df_by_process,
             x="corrected_final",
@@ -216,9 +215,11 @@ def graph_keys_against_genome(
     data_df: pl.DataFrame, workflow_names: list, key_processes: list
 ):
     graph_params = {
-        1: ["genome_size", "pacbio_total", "realtime_seconds", "pacbioVSgenome"],
-        2: ["genome_size", "cram_total", "realtime_seconds", "cramVSgenome"],
-        3: ["realtime_seconds", "genome_size", "genome_size", "timeVSgenome"],
+        0: ["realtime_seconds", "pacbio_total", "pacbioVStime"],
+        1: ["genome_size", "pacbio_total", "pacbioVSgenome"],
+        2: ["realtime_seconds", "cram_containers", "cramVSgenome"],
+        3: ["genome_size", "cram_containers", "cramcVStime"],
+        4: ["realtime_seconds", "genome_size", "timeVSgenome"],
     }
 
     for i in key_processes:
@@ -228,14 +229,15 @@ def graph_keys_against_genome(
                     "names",
                     "clade",
                     "pacbio_total",
-                    "cram_total",
+                    "cram_containers",
                     "realtime_seconds",
                     "genome_size",
                 ]
             )
         )
         for item, params in graph_params.items():
-            fig = sns.lmplot(
+            print(f"Generating graph for:\t{i} | Params == {params}", end="\r", flush=True)
+            sns.lmplot(
                 data=subset_df,
                 x=params[0],
                 y=params[1],
