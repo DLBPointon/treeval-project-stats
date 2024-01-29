@@ -1,4 +1,4 @@
-# SummaryStats
+# SummaryStats (v2)
 
 For the TreeVal project, we have included a TreeValProject.summary function in groovy. This collects some specifically made channels into an output file merged with the execution logs.
 

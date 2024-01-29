@@ -14,20 +14,36 @@ from condense_data import ExecutionCondenser
 
 # Constants
 TIME = date.today()
+VERSION = '2.0.0'
+DESCRIPTION = (
+    f"""
+    SummaryStats
+    Version: {VERSION}
+    ---
+    A Python3.10 script developed to parse NextflowDSL2 execution data into
+    actionable graphs and statistics.
+    ---
+    By Damon-Lee Pointon (DLBPointon, dp24)
+
+    ---
+    This script aims to:
+    - Generate efficiency data
+    - Generate graphs evidencing memory and cpu efficiency
+    - Use nf-co2footprint data to, nominatively, add co2 footprint data to your data
+        and ID your most polluting processes
+
+    Get flags with:
+    SummaryStats.py -h
+
+    """
+)
 base_df = []
 
 
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(
         prog="SummaryStats",
-        description="""\
-                    SummaryStats:
-        A script for parsing nextflow execution logs
-        into efficiency focused graphs.
-
-        Works even better with TreeValProject.Summary
-        context data.
-        """,
+        description=DESCRIPTION,
     )
     parser.add_argument(
         "directory",
@@ -55,6 +71,12 @@ def parse_args(argv=None):
         type=str,
         default="",
         help='A list of process for a process specific graph (will be more performant to specify! e.g "REPEAT_DENSITY:GNU_SORT_C,OTHER")',
+    )
+    parser.add_argument(
+        '-v',
+        '--version',
+        action='version',
+        version=VERSION
     )
     return parser.parse_args(argv)
 
