@@ -25,51 +25,48 @@ FOLDER = (
 
 base_df = []
 
+
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(
         prog="SummaryStats",
-        description='''\
+        description="""\
                     SummaryStats:
         A script for parsing nextflow execution logs
         into efficiency focused graphs.
 
         Works even better with TreeValProject.Summary
         context data.
-        '''
+        """,
     )
     parser.add_argument(
-        'directory',
+        "directory",
         type=str,
-        help='Path to directory containing all data files, e.g, /path/to/files/'
+        help="Path to directory containing all data files, e.g, /path/to/files/",
     )
     parser.add_argument(
-        '-co2',
-        '--co2directory',
+        "-co2",
+        "--co2directory",
         type=str,
         required=False,
-        help='Path to directory containing the nf-co2footprint output'
+        help="Path to directory containing the nf-co2footprint output",
     )
     parser.add_argument(
-        '--graph_savename',
+        "--graph_savename",
         required=False,
         type=str,
-        default='SummaryGraphs',
-        help='Do you want to name your graphs yourself?'
+        default="SummaryGraphs",
+        help="Do you want to name your graphs yourself?",
     )
+    parser.add_argument("--debug", type=bool, default=False, help="For debugging!")
     parser.add_argument(
-        '--debug',
-        type=bool,
-        default=False,
-        help='For debugging!'
-    )
-    parser.add_argument(
-        '-s',
-        '--specific-processes',
+        "-s",
+        "--specific-processes",
         type=list,
         default=[],
-        help='A list of process for a process specific graph (will be more performant to specify! e.g ["REPEAT_DENSITY:GNU_SORT_C"])'
+        help='A list of process for a process specific graph (will be more performant to specify! e.g ["REPEAT_DENSITY:GNU_SORT_C"])',
     )
     return parser.parse_args(argv)
+
 
 def get_data(dir: str):
     all_data = []
@@ -83,6 +80,7 @@ def get_data(dir: str):
             all_data.append(RunParser(f"{dir}{file}"))
 
     return all_data
+
 
 def main(args):
     # all_data = [ i for i in RunParser( f"{folder}{file}") ]
@@ -140,7 +138,7 @@ def main(args):
         )
         unique_names = total_value_df.get_column("names").to_list()
         workflow_names = list(set([i.split(":")[0] for i in unique_names]))
-        #graph_per_workflow(total_value_df, workflow_names, "TVC")
+        # graph_per_workflow(total_value_df, workflow_names, "TVC")
         #
         # Super condense allows us to generate the pipeline wide graphs like we do with non-contexted data
         #
@@ -150,7 +148,9 @@ def main(args):
         total_value_df = whole_condensed_data.condenser(df="avg", extended=True)
 
         if len(args.specific_processes) > 0:
-            graph_keys_against_genome(total_value_df, workflow_names, args.specific_processes)
+            graph_keys_against_genome(
+                total_value_df, workflow_names, args.specific_processes
+            )
 
     else:
         print("NONE or NOT ENOUGH CONTEXT DATA - continuing with ALL DATA analysis")

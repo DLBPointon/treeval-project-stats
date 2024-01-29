@@ -211,7 +211,10 @@ def graph_per_workflow(data_df: pl.DataFrame, names: list, save_name: str):
         plt.savefig(f"{save_name}_{i}.png")
         plt.clf()
 
-def graph_keys_against_genome(data_df: pl.DataFrame, workflow_names: list, key_processes: list):
+
+def graph_keys_against_genome(
+    data_df: pl.DataFrame, workflow_names: list, key_processes: list
+):
     graph_params = {
         1: ["genome_size", "pacbio_total", "realtime_seconds", "pacbioVSgenome"],
         2: ["genome_size", "cram_total", "realtime_seconds", "cramVSgenome"],
@@ -219,10 +222,17 @@ def graph_keys_against_genome(data_df: pl.DataFrame, workflow_names: list, key_p
     }
 
     for i in key_processes:
-        subset_df = data_df.filter(
-            pl.col("names").str.contains(i)
-        ).select(
-            pl.col(['names', "clade", "pacbio_total", "cram_total", "realtime_seconds", "genome_size"])
+        subset_df = data_df.filter(pl.col("names").str.contains(i)).select(
+            pl.col(
+                [
+                    "names",
+                    "clade",
+                    "pacbio_total",
+                    "cram_total",
+                    "realtime_seconds",
+                    "genome_size",
+                ]
+            )
         )
         for item, params in graph_params.items():
             fig = sns.lmplot(
@@ -230,9 +240,9 @@ def graph_keys_against_genome(data_df: pl.DataFrame, workflow_names: list, key_p
                 x=params[0],
                 y=params[1],
                 x_estimator=np.mean,
-                hue = "clade",
-                line_kws={"color": "red"}
+                hue="clade",
+                line_kws={"color": "red"},
             )
-            #fig.legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=1)
+            # fig.legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=1)
             plt.savefig(f"S_{params[-1]}_{i}.png")
             plt.clf()
