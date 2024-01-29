@@ -29,15 +29,15 @@ and reactivate with the `source` command used above.
 Run the script with:
 
 ```
-python3 src/treeval/scripts/ProjectStats.py {PATH TO SUMMARY DIRECTORY}
+python3 src/treeval/scripts/SummaryStats.py {PATH TO SUMMARY DIRECTORY}
 ```
 
 Current Example:
 
 ```
-python3 src/treeval/scripts/ProjectStats.py ./treeval-summary-files/1-1-0/
+python3 src/treeval/scripts/SummaryStats.py ./treeval-summary-files/1-1-0/
 
-python3 src/treeval/scripts/ProjectStats.py /lustre/scratch123/tol/resources/treeval/treeval_stats/release-1-0-0/
+python3 src/treeval/scripts/SummaryStats.py /lustre/scratch123/tol/resources/treeval/treeval_stats/release-1-0-0/
 ```
 
 ## Example

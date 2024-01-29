@@ -1,6 +1,7 @@
 # Major Imports
 import os
 import click
+import textwrap
 import argparse
 import polars as pl
 import seaborn as sns
@@ -16,24 +17,24 @@ from condense_data import ExecutionCondenser
 TIME = date.today()
 VERSION = "2.0.0"
 DESCRIPTION = f"""
-    SummaryStats
-    Version: {VERSION}
-    ---
-    A Python3.10 script developed to parse NextflowDSL2 execution data into
-    actionable graphs and statistics.
-    ---
-    By Damon-Lee Pointon (DLBPointon, dp24)
-
-    ---
-    This script aims to:
-    - Generate efficiency data
-    - Generate graphs evidencing memory and cpu efficiency
-    - Use nf-co2footprint data to, nominatively, add co2 footprint data to your data
-        and ID your most polluting processes
-
-    Get flags with:
-    SummaryStats.py -h
-
+    | ---
+    | SummaryStats
+    | Version: {VERSION}
+    | ---
+    | A Python3.10 script developed to parse NextflowDSL2 execution data into
+    | actionable graphs and statistics.
+    | ---
+    | By Damon-Lee Pointon (DLBPointon, dp24)
+    |
+    | ---
+    | This script aims to:
+    | - Generate efficiency data
+    | - Generate graphs evidencing memory and cpu efficiency
+    | - Use nf-co2footprint data to, nominatively, add co2 footprint data to your data
+    |     and ID your most polluting processes
+    |
+    | Get flags with:
+    | SummaryStats.py -h
     """
 base_df = []
 
@@ -41,7 +42,8 @@ base_df = []
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(
         prog="SummaryStats",
-        description=DESCRIPTION,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=textwrap.dedent(DESCRIPTION),
     )
     parser.add_argument(
         "directory",
@@ -49,11 +51,18 @@ def parse_args(argv=None):
         help="Path to directory containing all data files, e.g, /path/to/files/",
     )
     parser.add_argument(
+        '-des',
+        '--describe_data',
+        type=bool,
+        default=False,
+        help='Print a CLI report about the data (NOT YET IMPLEMENTED)'
+    )
+    parser.add_argument(
         "-co2",
         "--co2directory",
         type=str,
         required=False,
-        help="Path to directory containing the nf-co2footprint output",
+        help="Path to directory containing the nf-co2footprint output (NOT YET IMPLEMENTED)",
     )
     parser.add_argument(
         "--graph_savename",
