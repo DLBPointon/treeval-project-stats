@@ -14,9 +14,8 @@ from condense_data import ExecutionCondenser
 
 # Constants
 TIME = date.today()
-VERSION = '2.0.0'
-DESCRIPTION = (
-    f"""
+VERSION = "2.0.0"
+DESCRIPTION = f"""
     SummaryStats
     Version: {VERSION}
     ---
@@ -36,7 +35,6 @@ DESCRIPTION = (
     SummaryStats.py -h
 
     """
-)
 base_df = []
 
 
@@ -72,12 +70,7 @@ def parse_args(argv=None):
         default="",
         help='A list of process for a process specific graph (will be more performant to specify! e.g "REPEAT_DENSITY:GNU_SORT_C,OTHER")',
     )
-    parser.add_argument(
-        '-v',
-        '--version',
-        action='version',
-        version=VERSION
-    )
+    parser.add_argument("-v", "--version", action="version", version=VERSION)
     return parser.parse_args(argv)
 
 
