@@ -74,7 +74,7 @@ jobs:
 
       - name: Run SummaryStats
         run: |
-          python3.10 src/treeval/scripts/test_run.py
+          python3.10 src/treeval/scripts/test_run.py -d treeval-summary-files/1-1-0-runs-5/
 
       - name: Save PR number
         if: ${{ always() }}
