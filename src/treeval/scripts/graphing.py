@@ -236,7 +236,9 @@ def graph_keys_against_genome(
             )
         )
         for item, params in graph_params.items():
-            print(f"Generating graph for:\t{i} | Params == {params}", end="\r", flush=True)
+            print(
+                f"Generating graph for:\t{i} | Params == {params}", end="\r", flush=True
+            )
             sns.lmplot(
                 data=subset_df,
                 x=params[0],

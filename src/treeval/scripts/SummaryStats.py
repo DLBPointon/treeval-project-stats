@@ -74,7 +74,6 @@ def get_data(dir: str):
 
 
 def main(args):
-
     # Check if everything has context data
     # If yes, then inject into the dataframes
     # Else warn user and carry on with only the execution logs
@@ -96,7 +95,7 @@ def main(args):
             """
         )
 
-    specific_processes = args.specific_processes.split(',')
+    specific_processes = args.specific_processes.split(",")
 
     #
     # If all files contain the context data, then we can perform extra analysis
@@ -105,18 +104,16 @@ def main(args):
         print("ALL DATA HAS CONTEXT DATA - means more analysis!", end="\r", flush=True)
         tv_data = True
         new_data = [RunParser.inject_context(i) for i in all_data]
-        condensed_data = [
-            ExecutionCondenser(
-                i.execution.data_frame
-            )
-            for i in new_data
-        ]
+        condensed_data = [ExecutionCondenser(i.execution.data_frame) for i in new_data]
 
         # Prints all datatypes for all dataframes in folder
         # Followed by print of the column headers
         if args.debug:
             # Add a summarising counter per column?
-            [print(i.condenser(df="avg", extended=tv_data).dtypes) for i in condensed_data]
+            [
+                print(i.condenser(df="avg", extended=tv_data).dtypes)
+                for i in condensed_data
+            ]
             print(condensed_data[0].execution.data_frame.columns)
 
         all_total_values_df = pl.concat(
@@ -129,7 +126,7 @@ def main(args):
         if len(specific_processes) > 0:
             graph_keys_against_genome(
                 all_total_values_df, workflow_names, specific_processes
-        )
+            )
         unique_names = all_total_values_df.get_column("names").to_list()
         workflow_names = list(set([i.split(":")[0] for i in unique_names]))
         # graph_per_workflow(total_value_df, workflow_names, "TVC")
@@ -147,7 +144,11 @@ def main(args):
         ) """
 
     else:
-        print("NONE or MISSING CONTEXT DATA - continuing with MINIMAL analysis", end="\r", flush=True)
+        print(
+            "NONE or MISSING CONTEXT DATA - continuing with MINIMAL analysis",
+            end="\r",
+            flush=True,
+        )
         tv_data = False
         condensed_data = ExecutionCondenser(
             pl.concat([i.execution.data_frame for i in all_data])

@@ -85,7 +85,9 @@ class ExecutionCondenser:
                 pacbio_file_no=pl.lit(data_rear[6]).cast(pl.Int32),
                 cram_total=pl.lit(data_rear[7]).cast(pl.Int64),
                 cram_file_no=pl.lit(data_rear[8]).cast(pl.Int32),
-                cram_containers=pl.lit(data_rear[9]).cast(pl.Float64)  # Otherwise 0 == NaN
+                cram_containers=pl.lit(data_rear[9]).cast(
+                    pl.Float64
+                ),  # Otherwise 0 == NaN
             )
             new_df = reorder(add_context, 0, "names")
             new_list.append(new_df)
