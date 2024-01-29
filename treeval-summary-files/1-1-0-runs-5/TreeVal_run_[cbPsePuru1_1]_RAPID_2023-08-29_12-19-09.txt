@@ -11,7 +11,7 @@ InputSampleID:      [cbPsePuru1_1]
 InputYamlFile:      /lustre/scratch123/tol/resources/treeval/treeval_yaml/cbPsePuru1_1.yaml
 InputAssemblyData:  [[id:cbPsePuru1_1, sz:336192634, ln:non-vascular-plants, tk:DTOL], /lustre/scratch123/tol/teams/tola/treeval_runs/RC/cbPsePuru1_1/data/ref.fa]
 Input_PacBio_Files: [[id:pacbio, sz:8554591995], /lustre/scratch123/tol/teams/tola/treeval_runs/RC/cbPsePuru1_1/working/work/37/b86b2a520eac5a73661af44861d966/in/m64174e_230109_024231.ccs.bc1010_BAK8A_OA--bc1010_BAK8A_OA.filtered.fasta.gz]
-Input_Cram_Files:   [[id:cram, sz:89744062152], /lustre/scratch123/tol/teams/tola/treeval_runs/RC/cbPsePuru1_1/working/work/c7/719e0e5de8ff694f94e364ceb911ad/in/46313_4#7.cram]
+Input_Cram_Files:   [[id:cram, sz:89744062152, cn:19], /lustre/scratch123/tol/teams/tola/treeval_runs/RC/cbPsePuru1_1/working/work/c7/719e0e5de8ff694f94e364ceb911ad/in/46313_4#7.cram]
 ---RESOURCES---
 name	status	module	cpus	memory	attempt	realtime	%cpu	%mem	peak_rss
 RAPID:SANGERTOL_TREEVAL_RAPID:TREEVAL_RAPID:HIC_MAPPING:GrabFiles (cbPsePuru1_1)	COMPLETED	-	1	6 GB	1	143ms	19.5%	0.0%	0

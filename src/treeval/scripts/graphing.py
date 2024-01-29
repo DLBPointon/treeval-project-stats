@@ -2,6 +2,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import polars as pl
 import polars.selectors as cs
+import numpy as np
 
 
 def graph_cpu_vs_process(data_df: pl.DataFrame):
@@ -126,7 +127,7 @@ def graph_peak_vs_clade(data_df: pl.DataFrame):
             plt.clf()
 
 
-def graph_per_workflow(data_df: pl.DataFrame, names: list):
+def graph_per_workflow(data_df: pl.DataFrame, names: list, save_name: str):
     # Dataframe containing max
     df_avg_peak = (
         data_df.select(["names", "peak_memory_as_percentage"]).group_by("names").max()
@@ -207,6 +208,31 @@ def graph_per_workflow(data_df: pl.DataFrame, names: list):
             ax=ax2,
         )
 
-        plt.savefig(f"demo_{i}.png")
+        plt.savefig(f"{save_name}_{i}.png")
         plt.clf()
-    print(list(df_by_process.columns))
+
+def graph_keys_against_genome(data_df: pl.DataFrame, workflow_names: list, key_processes: list):
+    graph_params = {
+        1: ["genome_size", "pacbio_total", "realtime_seconds", "pacbioVSgenome"],
+        2: ["genome_size", "cram_total", "realtime_seconds", "cramVSgenome"],
+        3: ["realtime_seconds", "genome_size", "genome_size", "timeVSgenome"],
+    }
+
+    for i in key_processes:
+        subset_df = data_df.filter(
+            pl.col("names").str.contains(i)
+        ).select(
+            pl.col(['names', "clade", "pacbio_total", "cram_total", "realtime_seconds", "genome_size"])
+        )
+        for item, params in graph_params.items():
+            fig = sns.lmplot(
+                data=subset_df,
+                x=params[0],
+                y=params[1],
+                x_estimator=np.mean,
+                hue = "clade",
+                line_kws={"color": "red"}
+            )
+            #fig.legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=1)
+            plt.savefig(f"S_{params[-1]}_{i}.png")
+            plt.clf()

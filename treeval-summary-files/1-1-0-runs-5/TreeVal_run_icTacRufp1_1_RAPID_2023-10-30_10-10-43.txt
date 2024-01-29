@@ -11,7 +11,7 @@ InputSampleID:      icTacRufp1_1
 InputYamlFile:      /lustre/scratch123/tol/resources/treeval/treeval_yaml/icTacRufp1_1.yaml
 InputAssemblyData:  [[id:icTacRufp1_1, sz:1180420165, ln:insects, tk:DTOL], /lustre/scratch124/tol/projects/darwin/data/insects/Tachinus_rufipes/assembly/draft/treeval/icTacRufp1_1/data/ref.fa]
 Input_PacBio_Files: [[id:pacbio, sz:10401817280], /lustre/scratch124/tol/projects/darwin/data/insects/Tachinus_rufipes/assembly/draft/treeval/icTacRufp1_1/working/work/a0/7902b6c26ff188884d3ba3e1bc573d/in/m84093_231011_151832_s1.ccs.bc2009.filtered.fasta.gz]
-Input_Cram_Files:   [[id:cram, sz:28028271117], /lustre/scratch124/tol/projects/darwin/data/insects/Tachinus_rufipes/assembly/draft/treeval/icTacRufp1_1/working/work/b1/3c4ea6c746b8cee19865af7d9b23ff/in/47799_2#2.cram]
+Input_Cram_Files:   [[id:cram, sz:28028271117, cn:3], /lustre/scratch124/tol/projects/darwin/data/insects/Tachinus_rufipes/assembly/draft/treeval/icTacRufp1_1/working/work/b1/3c4ea6c746b8cee19865af7d9b23ff/in/47799_2#2.cram]
 ---RESOURCES---
 name	status	module	cpus	memory	attempt	realtime	%cpu	%mem	peak_rss
 RAPID:SANGERTOL_TREEVAL_RAPID:TREEVAL_RAPID:KMER:GrabFiles (icTacRufp1_1)	COMPLETED	-	1	6 GB	1	61ms	62.0%	0.0%	0

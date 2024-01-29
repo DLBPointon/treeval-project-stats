@@ -11,7 +11,7 @@ InputSampleID:      iySteCulp1_1
 InputYamlFile:      iySteCulp1.yaml
 InputAssemblyData:  [[id:iySteCulp1_1, sz:290896343, ln:insects, tk:DTOL], /nfs/treeoflife-01/teams/tola/users/dp24/treeval/raw_data/iySteCulp1_1.fa]
 Input_PacBio_Files: [[id:pacbio, sz:6141746105], /nfs/treeoflife-01/teams/tola/users/dp24/treeval/work/20/34bc15c338f4068a3da3b49442f7e5/in/m64174e_230202_075812.ccs.bc1012_BAK8A_OA--bc1012_BAK8A_OA.filtered.fasta.gz]
-Input_Cram_Files:   [[id:cram, sz:40536719910], /nfs/treeoflife-01/teams/tola/users/dp24/treeval/work/58/3078ac82150744f30e49fddb4a9563/in/46745_3#3.cram]
+Input_Cram_Files:   [[id:cram, sz:40536719910, cn:9], /nfs/treeoflife-01/teams/tola/users/dp24/treeval/work/58/3078ac82150744f30e49fddb4a9563/in/46745_3#3.cram]
 ---RESOURCES---
 name	status	module	cpus	memory	attempt	realtime	%cpu	%mem	peak_rss
 RAPID:SANGERTOL_TREEVAL_RAPID:TREEVAL_RAPID:LONGREAD_COVERAGE:GrabFiles (iySteCulp1_1)	COMPLETED	-	1	6 GB	1	62ms	72.4%	0.0%	0

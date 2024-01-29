@@ -18,7 +18,7 @@ class ParseExecution:
         data_frame = self.generate_dataframe(contents)
         self.classification, master_list = self.classify_data(data_frame)
         corrected_data_frame = self.correct_dataframe_names(data_frame, master_list)
-        self.data_frame = self.add_column_desctiption(corrected_data_frame)
+        self.data_frame = self.add_column_description(corrected_data_frame)
 
         self.collection = self.__iter__()
 
@@ -74,10 +74,10 @@ class ParseExecution:
             data[9] = normalise_values(self, data[9])
             data.append(
                 math.ceil(float(data[7]) / 100)
-            )  # Calculate number of core used (rounded up to whole number as you can't request a fraction of a core)
+            )  # /\ Calculate number of core used (rounded up to whole number as you can't request a fraction of a core)
             data.append(
                 (data[4] / 100) * data[8]
-            )  # Calculate the actual memory used by process in MB
+            )  # /\ Calculate the actual memory used by process in MB
             data.append((data[9] / data[4] * 100))  # Peak mem percentage of request
 
         return data
@@ -177,7 +177,7 @@ class ParseExecution:
             {"updated_names": "names"}
         )  # Reorder columns and rename col_0 back to names
 
-    def add_column_desctiption(self, df: pl.DataFrame) -> pl.DataFrame:
+    def add_column_description(self, df: pl.DataFrame) -> pl.DataFrame:
         """
         Add a new column including a simple description of col_0
         W = workflow
