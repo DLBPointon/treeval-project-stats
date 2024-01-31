@@ -94,3 +94,8 @@ TODO:
 
 - Make TreeValProject.Summary input data optional
 - Output graphs summarising the stats. (Done for 80% of mem cases, issues with subworkflows inside subworkflows)
+
+Full Dataframe will contain data on:
+```
+['names', 'cpus_requested', 'memory_requested_mb', 'attempt', 'realtime_seconds', 'percent_cpu', 'average_memory_used_as_percentage', 'peak_memory_mb', 'cpu_used', 'average_memory_used_as_mb', 'peak_memory_as_percentage', 'desc', 'status', 'clade', 'unique_name', 'genome_size', 'entry_point', 'pipeline_time', 'pacbio_total', 'pacbio_file_no', 'cram_total', 'cram_file_no', 'cram_containers']
+```

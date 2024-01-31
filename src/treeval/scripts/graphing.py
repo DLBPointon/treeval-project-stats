@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import polars as pl
 import polars.selectors as cs
 import numpy as np
+from sklearn.model_selection import train_test_split
 
 
 def graph_cpu_vs_process(data_df: pl.DataFrame):
@@ -252,3 +253,24 @@ def graph_keys_against_genome(
             # fig.legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=1)
             plt.savefig(f"S_{params[-1]}_{i}.png")
             plt.clf()
+
+def graph_linear_regressions(in_dic: dict, context: bool):
+    """
+    Use scikit-learn to calculate a linear regression on the data
+    both for clade specific and for overall (for comparison and unknowns)
+    """
+    print(in_dic["data"].columns)
+    if context and in_dic["all_data"]:
+        subset_df = in_dic["data"].select(
+            ['names', 'clade', 'genome_size', 'realtime_seconds', 'pacbio_total', 'cram_total', 'peak_memory_mb', 'average_memory_used_as_mb']
+        )
+        pd_subset_df = subset_df.to_pandas(use_pyarrow_extension_array=False)
+
+        sns.pairplot(pd_subset_df, kind="reg", diag_kind="kde")
+        plt.savefig(f"lin_reg.png")
+        plt.clf()
+
+    elif context and not in_dic["all_data"]:
+        pass
+    else: # Assume non-context data
+        pass

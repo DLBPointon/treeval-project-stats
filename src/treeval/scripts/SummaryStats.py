@@ -151,6 +151,7 @@ def main(args):
             graph_keys_against_genome(
                 all_total_values_df, workflow_names, specific_processes
             )
+
         unique_names = all_total_values_df.get_column("names").to_list()
         workflow_names = list(set([i.split(":")[0] for i in unique_names]))
         # graph_per_workflow(total_value_df, workflow_names, "TVC")
@@ -183,6 +184,26 @@ def main(args):
         cfg.set_tbl_cols(-1)
         print(total_value_df) """
 
+    if tv_data:
+        regression_args = {
+            1: {
+                "data": all_total_values_df,
+                "all_data": True,
+                },
+            2: {
+                "data": total_value_df,
+                "all_data": False
+            }
+        }
+    else:
+        regression_args = {
+            2: {
+                "data": total_value_df,
+                "all_data": False
+            }
+        }
+    for x, y in regression_args.items():
+        graph_linear_regressions(y, tv_data)
     # graph_process_vs_peak(total_value_df)
     # graph_per_workflow(total_value_df, workflow_names)
     # graph_process_vs_peak_log(total_value_df)
