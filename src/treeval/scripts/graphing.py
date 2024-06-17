@@ -254,6 +254,7 @@ def graph_keys_against_genome(
             plt.savefig(f"S_{params[-1]}_{i}.png")
             plt.clf()
 
+
 def graph_linear_regressions(in_dic: dict, context: bool):
     """
     Use scikit-learn to calculate a linear regression on the data
@@ -262,7 +263,16 @@ def graph_linear_regressions(in_dic: dict, context: bool):
     print(in_dic["data"].columns)
     if context and in_dic["all_data"]:
         subset_df = in_dic["data"].select(
-            ['names', 'clade', 'genome_size', 'realtime_seconds', 'pacbio_total', 'cram_total', 'peak_memory_mb', 'average_memory_used_as_mb']
+            [
+                "names",
+                "clade",
+                "genome_size",
+                "realtime_seconds",
+                "pacbio_total",
+                "cram_total",
+                "peak_memory_mb",
+                "average_memory_used_as_mb",
+            ]
         )
         pd_subset_df = subset_df.to_pandas(use_pyarrow_extension_array=False)
 
@@ -272,5 +282,5 @@ def graph_linear_regressions(in_dic: dict, context: bool):
 
     elif context and not in_dic["all_data"]:
         pass
-    else: # Assume non-context data
+    else:  # Assume non-context data
         pass
