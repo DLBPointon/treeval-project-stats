@@ -91,6 +91,7 @@ def get_data(dir: str):
             # empty_files.append(file)
             pass
         else:
+            print(file)
             all_data.append(RunParser(f"{dir}{file}"))
 
     return all_data

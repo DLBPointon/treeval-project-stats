@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 
 def graph_cpu_vs_process(data_df: pl.DataFrame):
     print("Generating CPU usage vs process", end="\r", flush=True)
-    sns.set(rc={"figure.figsize": (25, 25)})
+    sns.set_theme(rc={"figure.figsize": (25, 25)})
     fig = sns.lineplot(data_df, x="names", y="cpus_requested")
     fig.set(title="Process vs. CPUs requested")
 
@@ -27,7 +27,7 @@ def graph_cpu_vs_process(data_df: pl.DataFrame):
 
 def graph_process_vs_peak_log(data_df: pl.DataFrame):
     print("Generating Process VS Peak memory (LOG scale)", end="\r", flush=True)
-    sns.set(rc={"figure.figsize": (25, 25)})
+    sns.set_theme(rc={"figure.figsize": (25, 25)})
     new_data = data_df.with_columns(
         (pl.col("memory_requested_mb").log(base=2)).alias("mem_req_mb_log")
     )
@@ -55,7 +55,7 @@ def graph_process_vs_peak_log(data_df: pl.DataFrame):
 
 def graph_process_vs_peak(data_df: pl.DataFrame):
     print("Generating Process VS Peak memory graph", end="\r", flush=True)
-    sns.set(rc={"figure.figsize": (25, 25)})
+    sns.set_theme(rc={"figure.figsize": (25, 25)})
     fig = sns.lineplot(data_df, x="names", y="memory_requested_mb")
     fig.set(title="Process vs. Memory")
 
@@ -77,7 +77,6 @@ def graph_process_vs_peak(data_df: pl.DataFrame):
 
 def graph_peak_vs_clade(data_df: pl.DataFrame):
     print("Generating Peak Mem VS Clade graph", end="\r", flush=True)
-    print(data_df.columns)
 
     data2 = data_df.with_columns(
         [
@@ -95,9 +94,8 @@ def graph_peak_vs_clade(data_df: pl.DataFrame):
             fig, axes = plt.subplots(1, 2, figsize=(24, 12))
 
             data3 = data2.filter((pl.col("major_subworkflow") == i))
-            print(i)
 
-            sns.set(rc={"figure.figsize": (25, 25)})
+            sns.set_theme(rc={"figure.figsize": (25, 25)})
             sns.boxplot(
                 ax=axes[0],
                 data=data3,
@@ -238,7 +236,7 @@ def graph_keys_against_genome(
         )
         for item, params in graph_params.items():
             print(
-                f"Generating graph for:\t {i} | Params == {params}",
+                f"Generating graph for:\t {item} | Params == {params}",
                 end="\r",
                 flush=True,
             )
@@ -251,7 +249,7 @@ def graph_keys_against_genome(
                 line_kws={"color": "red"},
             )
             # fig.legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=1)
-            plt.savefig(f"S_{params[-1]}_{i}.png")
+            plt.savefig(f"S_{params[-1]}_{item}.png")
             plt.clf()
 
 
@@ -260,9 +258,8 @@ def graph_linear_regressions(in_dic: dict, context: bool):
     Use scikit-learn to calculate a linear regression on the data
     both for clade specific and for overall (for comparison and unknowns)
     """
-    process_list = ["MINIMAP2_ALIGN", "CRAM_FILTER_ALIGN_BWAMEM2_FIXMATE_SORT"]
+    process_list = ["MINIMAP2_ALIGN", "CRAM_FILTER_ALIGN_BWAMEM2_FIXMATE_SORT"] # TODO: TO BE FED FROM COMMANDLINE EVENTUALLY
 
-    print(in_dic["data"].columns)
     if context and in_dic["all_data"]:
         for i in process_list:
 
