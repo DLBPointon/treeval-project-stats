@@ -50,11 +50,11 @@ def parse_args(argv=None):
         help="Path to directory containing all data files, e.g, /path/to/files/",
     )
     parser.add_argument(
-        '-des',
-        '--describe_data',
+        "-des",
+        "--describe_data",
         type=bool,
         default=False,
-        help='Print a CLI report about the data (NOT YET IMPLEMENTED)'
+        help="Print a CLI report about the data (NOT YET IMPLEMENTED)",
     )
     parser.add_argument(
         "-co2",
@@ -188,19 +188,11 @@ def main(args):
             1: {
                 "data": all_total_values_df,
                 "all_data": True,
-                },
-            2: {
-                "data": total_value_df,
-                "all_data": False
-            }
+            },
+            2: {"data": total_value_df, "all_data": False},
         }
     else:
-        regression_args = {
-            3: {
-                "data": total_value_df,
-                "all_data": False
-            }
-        }
+        regression_args = {3: {"data": total_value_df, "all_data": False}}
     for x, y in regression_args.items():
         graph_linear_regressions(y, tv_data)
     # graph_process_vs_peak(total_value_df)
