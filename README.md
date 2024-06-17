@@ -42,6 +42,8 @@ python3 src/treeval/scripts/SummaryStats.py /lustre/scratch123/tol/resources/tre
 
 ## Repo Explainer
 
+Note: Each test data folder contains a placeholder file which is empty, this is to ensure the pipeline can cope in such cases.
+
 - output StatGraphsV2
   - Examples of the current output from SummaryStats V2
 - src
