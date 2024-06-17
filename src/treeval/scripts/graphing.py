@@ -260,25 +260,34 @@ def graph_linear_regressions(in_dic: dict, context: bool):
     Use scikit-learn to calculate a linear regression on the data
     both for clade specific and for overall (for comparison and unknowns)
     """
+    process_list = ["MINIMAP2_ALIGN", "CRAM_FILTER_ALIGN_BWAMEM2_FIXMATE_SORT"]
+
     print(in_dic["data"].columns)
     if context and in_dic["all_data"]:
-        subset_df = in_dic["data"].select(
-            [
-                "names",
-                "clade",
-                "genome_size",
-                "realtime_seconds",
-                "pacbio_total",
-                "cram_total",
-                "peak_memory_mb",
-                "average_memory_used_as_mb",
-            ]
-        )
-        pd_subset_df = subset_df.to_pandas(use_pyarrow_extension_array=False)
+        for i in process_list:
 
-        sns.pairplot(pd_subset_df, kind="reg", diag_kind="kde")
-        plt.savefig(f"lin_reg.png")
-        plt.clf()
+            subset_df = (
+                in_dic["data"]
+                .select(
+                    [
+                        "names",
+                        "clade",
+                        "genome_size",
+                        "realtime_seconds",
+                        "pacbio_total",
+                        "cram_total",
+                        "peak_memory_mb",
+                        "average_memory_used_as_mb",
+                        "cram_containers",
+                    ]
+                )
+                .filter(pl.any_horizontal(pl.col("names").str.contains(i)))
+            )
+            pd_subset_df = subset_df.to_pandas(use_pyarrow_extension_array=False)
+
+            sns.pairplot(pd_subset_df, kind="reg", diag_kind="kde")
+            plt.savefig(f"lin_reg-{i}.png")
+            plt.clf()
 
     elif context and not in_dic["all_data"]:
         pass
