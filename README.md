@@ -40,6 +40,43 @@ python3 src/treeval/scripts/SummaryStats.py ./treeval-summary-files/1-1-0/
 python3 src/treeval/scripts/SummaryStats.py /lustre/scratch123/tol/resources/treeval/treeval_stats/release-1-0-0/
 ```
 
+## Repo Explainer
+
+- output-StatGraphsV2
+  - Examples of the current output from SummaryStats V2
+
+- src
+  - accessory_scripts
+    - A script used to convert the data in readmapping into that usable for SummaryStats, this is due to the different columns used in each team
+  - legacy_scripts
+    - files which have not yet been ported to V2, or contain code that is kept for posterity for now.
+  - test_scripts
+    - Scripts used to test individual classes and code
+    - This should really be done by Unit tests
+  - scripts
+    - Contains the actual code for SummaryStats split into multiple classes for each input data type
+- test-data
+  - 1-0-0-runs
+    - TV-enhanced runs of the TreeVal V1.0.0 pipeline
+  - 1-1-0-runs
+    - TV-enhanced runs of the TreeVal V1.0.0 pipeline
+  - 1-1-0-co2
+    - Respective co2 files of a subset of files in the above folder (script willl have to deal with this)
+  - genomenote
+    - output from another pipeline in ToL - plain trace files - may need re-headering
+  - readmapping
+    - output from another pipeline in ToL - plain trace files - re-headered in `readmapping modified`
+  - readmapping modified
+    - re-headered output from readmapping
+  - mixed_data
+    - a small folder of mixed data - should always kill the pipeline if there are mixed basic/enhanced data
+    - SHOULD MAKE THIS A FLAG SO IF THERE IS A MIX THEN IGNORE ENHANCED DATA
+  - efficiency_graphs
+    - Graphs showing the relative efficiency of all runs
+    - This needs porting to V2
+  - requirements.txt
+    - List of installable libraries for SummatyStats
+
 ## Example
 
 ```

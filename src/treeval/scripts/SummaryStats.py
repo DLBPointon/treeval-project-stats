@@ -1,6 +1,5 @@
 # Major Imports
 import os
-import click
 import textwrap
 import argparse
 import polars as pl
@@ -197,7 +196,7 @@ def main(args):
         }
     else:
         regression_args = {
-            2: {
+            3: {
                 "data": total_value_df,
                 "all_data": False
             }

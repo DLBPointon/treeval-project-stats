@@ -1,2 +1,0 @@
-name	status	module	cpus	memory	attempt	realtime	%cpu	%mem	peak_rss
-NFCORE_RNASEQ:RNASEQ:CUSTOM_DUMPSOFTWAREVERSIONS (1)	COMPLETED	-	1	6 GB	1	357ms	34.2%	0.0%	1.9 MB
