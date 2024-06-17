@@ -1,0 +1,50 @@
+--------------------------------------------------
+TreeVal Project Summary Stats!
+--------------------------------------------------
+Total data points: 362
+--------------------------------------------------
+Unique CLADE count:
+Clade
+insects                242
+dicots                  28
+fish                    19
+fungi                   13
+monocots                 9
+nematode                 9
+mammals                  8
+bird                     6
+mollusc                  5
+sponges                  5
+non-vascular-plants      3
+jellyfish                2
+platyhelminths           2
+chordates                2
+arthropods               2
+protist                  1
+reptile                  1
+other-animal-phyla       1
+other_arthropoda         1
+protists                 1
+Annelida                 1
+Xenacoelomorpha          1
+Name: count, dtype: int64
+--------------------------------------------------
+Run Type Count:
+Entry_Point
+RAPID    301
+FULL      61
+Name: count, dtype: int64
+--------------------------------------------------
+Ticket Type Count:
+Ticket
+DTOL    253
+TOL      45
+VGP      40
+null     16
+ASG       7
+RC        1
+Name: count, dtype: int64
+--------------------------------------------------
+CPU min/max 124.8% / 323.91%
+MEM min/max 212.64% / 8606.26%
+--------------------------------------------------
