@@ -235,11 +235,7 @@ def graph_keys_against_genome(
             )
         )
         for item, params in graph_params.items():
-            print(
-                f"Generating graph for:\t {item} | Params == {params}",
-                end="\r",
-                flush=True,
-            )
+            print(f"Generating graph for:\t {item} | Params == {params}")
             sns.lmplot(
                 data=subset_df,
                 x=params[0],
@@ -258,7 +254,10 @@ def graph_linear_regressions(in_dic: dict, context: bool):
     Use scikit-learn to calculate a linear regression on the data
     both for clade specific and for overall (for comparison and unknowns)
     """
-    process_list = ["MINIMAP2_ALIGN", "CRAM_FILTER_ALIGN_BWAMEM2_FIXMATE_SORT"] # TODO: TO BE FED FROM COMMANDLINE EVENTUALLY
+    process_list = [
+        "MINIMAP2_ALIGN",
+        "CRAM_FILTER_ALIGN_BWAMEM2_FIXMATE_SORT",
+    ]  # TODO: TO BE FED FROM COMMANDLINE EVENTUALLY
 
     if context and in_dic["all_data"]:
         for i in process_list:

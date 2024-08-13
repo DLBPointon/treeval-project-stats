@@ -134,7 +134,7 @@ def main(args):
     # If all files contain the context data, then we can perform extra analysis
     #
     if tv_counter == len(all_data):
-        print("ALL DATA HAS CONTEXT DATA - means more analysis!", end="\r", flush=True)
+        print("ALL DATA HAS CONTEXT DATA - means more analysis!")
         tv_data = True
         new_data = [RunParser.inject_context(i) for i in all_data]
         condensed_data = [ExecutionCondenser(i.execution.data_frame) for i in new_data]
@@ -156,7 +156,7 @@ def main(args):
         unique_names = all_total_values_df.get_column("names").to_list()
         workflow_names = list(set([i.split(":")[0] for i in unique_names]))
 
-        if len(specific_processes) > 0:
+        if len(specific_processes) > 0 and args.output_halfway != True:
             graph_keys_against_genome(
                 all_total_values_df, workflow_names, specific_processes
             )
@@ -178,20 +178,12 @@ def main(args):
         ) """
 
     else:
-        print(
-            "NONE or MISSING CONTEXT DATA - continuing with MINIMAL analysis",
-            end="\r",
-            flush=True,
-        )
+        print("NONE or MISSING CONTEXT DATA - continuing with MINIMAL analysis")
         tv_data = False
         condensed_data = ExecutionCondenser(
             pl.concat([i.execution.data_frame for i in all_data])
         )
         total_value_df = condensed_data.condenser(df="total")
-
-    """ with pl.Config() as cfg:
-        cfg.set_tbl_cols(-1)
-        print(total_value_df) """
 
     if args.output_halfway:
         all_total_values_df.write_csv("ML_data.csv", separator=",")
