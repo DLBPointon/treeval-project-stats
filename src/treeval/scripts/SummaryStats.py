@@ -1,5 +1,6 @@
 # Major Imports
 import os
+import sys
 import textwrap
 import argparse
 import polars as pl
@@ -14,7 +15,7 @@ from condense_data import ExecutionCondenser
 
 # Constants
 TIME = date.today()
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 DESCRIPTION = f"""
     | ---
     | SummaryStats
@@ -52,8 +53,7 @@ def parse_args(argv=None):
     parser.add_argument(
         "-des",
         "--describe_data",
-        type=bool,
-        default=False,
+        action="store_true",
         help="Print a CLI report about the data (NOT YET IMPLEMENTED)",
     )
     parser.add_argument(
@@ -68,7 +68,14 @@ def parse_args(argv=None):
         required=False,
         type=str,
         default="SummaryGraphs",
-        help="Do you want to name your graphs yourself?",
+        help="Save name for the graphs",
+    )
+    parser.add_argument(
+        "-a",
+        "--output_halfway",
+        type=bool,
+        default=False,
+        help="Output halfway data for ML",
     )
     parser.add_argument("--debug", type=bool, default=False, help="For debugging!")
     parser.add_argument(
@@ -91,7 +98,9 @@ def get_data(dir: str):
             # empty_files.append(file)
             pass
         else:
-            print(file)
+            if args.debug:
+                print(file)
+
             all_data.append(RunParser(f"{dir}{file}"))
 
     return all_data
@@ -184,6 +193,10 @@ def main(args):
         cfg.set_tbl_cols(-1)
         print(total_value_df) """
 
+    if args.output_halfway:
+        all_total_values_df.write_csv("ML_data.csv", separator=",")
+        sys.exit("Don't need to do anything else!")
+
     if tv_data:
         regression_args = {
             1: {
@@ -194,11 +207,16 @@ def main(args):
         }
     else:
         regression_args = {3: {"data": total_value_df, "all_data": False}}
+
     for x, y in regression_args.items():
         graph_linear_regressions(y, tv_data)
-    # graph_process_vs_peak(total_value_df)
-    # graph_per_workflow(total_value_df, workflow_names)
-    # graph_process_vs_peak_log(total_value_df)
+
+    if args.graphs:
+        # for x, y in regression_args.items():
+        # graph_linear_regressions(y, tv_data)
+        # graph_process_vs_peak(total_value_df)
+        graph_per_workflow(total_value_df, workflow_names, "./")
+        graph_process_vs_peak_log(total_value_df)
 
 
 if __name__ == "__main__":
