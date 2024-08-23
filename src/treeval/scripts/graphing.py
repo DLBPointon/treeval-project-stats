@@ -123,7 +123,7 @@ def graph_peak_vs_clade(data_df: pl.DataFrame):
             box = fig.get_figure()
 
             box.savefig(f"{i}-test-peak-clade.png")
-            plt.clf()
+            plt.close()
 
 
 def graph_per_workflow(data_df: pl.DataFrame, names: list, save_name: str):

@@ -85,6 +85,11 @@ def parse_args(argv=None):
         default="",
         help='A list of process for a process specific graph (will be more performant to specify! e.g "REPEAT_DENSITY:GNU_SORT_C,OTHER")',
     )
+    parser.add_argument(
+        "--graphs",
+        action="store_true",
+        help="Generate graphs for analysis",
+    )
     parser.add_argument("-v", "--version", action="version", version=VERSION)
     return parser.parse_args(argv)
 
@@ -200,15 +205,25 @@ def main(args):
     else:
         regression_args = {3: {"data": total_value_df, "all_data": False}}
 
-    for x, y in regression_args.items():
-        graph_linear_regressions(y, tv_data)
-
     if args.graphs:
-        # for x, y in regression_args.items():
-        # graph_linear_regressions(y, tv_data)
-        # graph_process_vs_peak(total_value_df)
-        graph_per_workflow(total_value_df, workflow_names, "./")
+        for x, y in regression_args.items():
+            print(f"GENERATE LINEAR GRAPHS WITH: {x} -- {y}")
+            graph_linear_regressions(y, tv_data)
+        
+        print(f"GENERATE PROCESS VS PEAK")
+        graph_process_vs_peak(total_value_df)
+
+        print(f"GENERATE PROCESS VS PEAK - LOG")
         graph_process_vs_peak_log(total_value_df)
+
+        print(f"GENERATE GRAPH PER WORKFLOW")
+        graph_per_workflow(total_value_df, workflow_names, "./")
+        
+        print(f"GENERATE PEAK VS CLADE")
+        graph_peak_vs_clade(total_value_df)
+        
+        print(f"GENERATE PROCESS VS CPU")
+        graph_cpu_vs_process(total_value_df)
 
 
 if __name__ == "__main__":
